@@ -1,1 +1,1 @@
-# Agentix-XAI
+# Agentic-XAI
