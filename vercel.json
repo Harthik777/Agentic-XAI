@@ -1,15 +1,14 @@
 {
   "version": 2,
-  "buildCommand": "cd frontend && npm install && npm run build",
-  "outputDirectory": "frontend/build",
+  "buildCommand": "chmod +x build.sh && ./build.sh",
+  "outputDirectory": ".vercel/output",
   "builds": [
     {
       "src": "backend/app/main.py",
       "use": "@vercel/python",
       "config": {
         "maxLambdaSize": "15mb",
-        "runtime": "python3.9",
-        "buildCommand": "cd backend && python3.9 -m pip install --upgrade pip && python3.9 -m pip install -r requirements.txt"
+        "runtime": "python3.9"
       }
     }
   ],
@@ -20,12 +19,12 @@
     },
     {
       "src": "/(.*)",
-      "dest": "/$1"
+      "dest": "/static/$1"
     }
   ],
   "env": {
     "PYTHONPATH": "backend",
     "PYTHON_VERSION": "3.9",
-    "VIRTUAL_ENV": "/opt/python3.9"
+    "VIRTUAL_ENV": "venv"
   }
 } 
