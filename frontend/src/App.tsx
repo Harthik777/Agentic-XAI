@@ -73,12 +73,14 @@ function App() {
           </Typography>
 
           <Grid container spacing={3}>
-            <Grid item xs={12} md={6}>
+            {/* Corrected Grid item */}
+            <Grid size={{ xs: 12, md: 6 }}>
               <Paper elevation={3} sx={{ p: 3 }}>
                 <TaskForm onSubmit={handleTaskSubmit} loading={loading} />
               </Paper>
             </Grid>
-            <Grid item xs={12} md={6}>
+            {/* Corrected Grid item */}
+            <Grid size={{ xs: 12, md: 6 }}>
               <Paper elevation={3} sx={{ p: 3 }}>
                 {loading ? (
                   <Box display="flex" justifyContent="center" alignItems="center" minHeight={200}>
@@ -102,4 +104,4 @@ function App() {
   );
 }
 
-export default App; 
+export default App;
