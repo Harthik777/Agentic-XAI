@@ -11,7 +11,7 @@ import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import TaskForm from './components/TaskForm';
 import ExplanationView from './components/ExplanationView';
-import { TaskResponse } from './types';
+import { TaskResponse, Explanation } from './types'; // Ensure Explanation is imported if used directly
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
@@ -35,6 +35,8 @@ function App() {
   const handleTaskSubmit = async (taskDescription: string, context: any) => {
     setLoading(true);
     setError(null);
+    // setTaskResponse(null); // Optionally clear previous response immediately
+
     try {
       const response = await fetch(`${API_URL}/api/task`, {
         method: 'POST',
@@ -48,13 +50,50 @@ function App() {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to process task');
+        // Try to get more specific error from response body if possible
+        let errorData;
+        try {
+          errorData = await response.json();
+        } catch (e) {
+          // Ignore if response body is not JSON
+        }
+        const errorMessage = errorData?.detail || `HTTP error! status: ${response.status}`;
+        throw new Error(errorMessage);
       }
 
-      const data = await response.json();
-      setTaskResponse(data);
+      // Check if the response is empty before trying to parse JSON
+      const responseText = await response.text();
+      if (!responseText) {
+        console.error("Received empty response from API");
+        setError("Received an empty response from the server.");
+        setTaskResponse(null);
+        setLoading(false);
+        return;
+      }
+
+      const data: any = JSON.parse(responseText); // Parse text after checking it's not empty
+
+      // Validate the structure of data before setting it
+      if (data && typeof data.decision === 'string' && data.explanation && typeof data.explanation === 'object') {
+        // Further check if explanation has the required nested properties
+        const exp = data.explanation as Explanation; // Cast for easier access
+        if (Array.isArray(exp.reasoning_steps) && typeof exp.feature_importance === 'object' && typeof exp.model_details === 'object') {
+          setTaskResponse(data as TaskResponse);
+          setError(null); // Clear previous errors
+        } else {
+          console.error("Received data with malformed explanation structure:", data);
+          setError("Received data with an invalid explanation structure from the server.");
+          setTaskResponse(null);
+        }
+      } else {
+        console.error("Received malformed or incomplete data from API:", data);
+        setError("Received malformed or incomplete data from the server.");
+        setTaskResponse(null);
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      console.error("Fetch error:", err);
+      setError(err instanceof Error ? err.message : 'An unknown error occurred during fetch.');
+      setTaskResponse(null); // Ensure taskResponse is null on error
     } finally {
       setLoading(false);
     }
@@ -73,13 +112,11 @@ function App() {
           </Typography>
 
           <Grid container spacing={3}>
-            {/* Corrected Grid item */}
             <Grid size={{ xs: 12, md: 6 }}>
               <Paper elevation={3} sx={{ p: 3 }}>
                 <TaskForm onSubmit={handleTaskSubmit} loading={loading} />
               </Paper>
             </Grid>
-            {/* Corrected Grid item */}
             <Grid size={{ xs: 12, md: 6 }}>
               <Paper elevation={3} sx={{ p: 3 }}>
                 {loading ? (
@@ -87,12 +124,12 @@ function App() {
                     <CircularProgress />
                   </Box>
                 ) : error ? (
-                  <Typography color="error">{error}</Typography>
+                  <Typography color="error" align="center" sx={{ p: 2 }}>{error}</Typography>
                 ) : taskResponse ? (
                   <ExplanationView response={taskResponse} />
                 ) : (
-                  <Typography color="text.secondary" align="center">
-                    Submit a task to see the agent's decision and explanation
+                  <Typography color="text.secondary" align="center" sx={{ p: 2, minHeight: 200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    Submit a task to see the agent's decision and explanation.
                   </Typography>
                 )}
               </Paper>

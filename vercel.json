@@ -6,7 +6,7 @@
       "use": "@vercel/static-build",
       "config": {
         "distDir": "build",
-        "buildCommand": "npm install && npm run build"
+        "buildCommand": "cd frontend && npm install && npm run build"
       }
     },
     {
@@ -14,7 +14,7 @@
       "use": "@vercel/python",
       "config": {
         "runtime": "python3.9",
-        "buildCommand": "pip install -r requirements.txt"
+        "buildCommand": "cd backend && pip install -r requirements.txt"
       }
     }
   ],
@@ -27,5 +27,8 @@
       "src": "/(.*)",
       "dest": "frontend/build/$1"
     }
-  ]
+  ],
+  "env": {
+    "PYTHONPATH": "backend"
+  }
 } 

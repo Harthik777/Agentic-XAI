@@ -1,63 +1,70 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import List, Dict, Any
-import torch
-import numpy as np
-from .models.agent import IntelligentAgent
-from .xai.explainer import XAIExplainer
+from typing import Any, Dict
 
-app = FastAPI(title="Agentic-XAI API")
+# Corrected import: Changed IntelligentAgent to Agent
+from .models.agent import Agent
 
-# Configure CORS
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+app = FastAPI(
+    title="Agentic-XAI API",
+    description="API for the Intelligent Agent with Explainable AI",
+    version="0.1.0",
 )
 
-# Initialize the agent and explainer
-agent = IntelligentAgent()
-explainer = XAIExplainer()
+# CORS (Cross-Origin Resource Sharing)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allows all origins for development, restrict in production
+    allow_credentials=True,
+    allow_methods=["*"],  # Allows all methods
+    allow_headers=["*"],  # Allows all headers
+)
+
+# Initialize the agent
+# The REPLICATE_API_TOKEN should be set as an environment variable
+# where this FastAPI application is run.
+try:
+    agent = Agent() 
+except Exception as e:
+    # If agent initialization fails (e.g., REPLICATE_API_TOKEN missing and client init fails hard)
+    # We'll log it and the agent instance might be None or in an error state.
+    # The Agent class itself has a print warning for missing token,
+    # but a hard failure during __init__ could be caught here.
+    print(f"Critical error initializing Agent: {e}")
+    # Depending on how critical the agent is at startup, you might choose to exit
+    # or allow the app to start and handle the error per-request in process_task.
+    # For now, we let it proceed, and the Agent class handles the None client.
+    agent = Agent() # Attempt again, or ensure Agent() can be instantiated minimally
+
 
 class TaskRequest(BaseModel):
     task_description: str
-    context: Dict[str, Any] = {}
+    context: Dict[str, Any]
 
-class ExplanationRequest(BaseModel):
-    decision_id: str
-    format: str = "text"  # text, visualization, or both
 
 @app.post("/api/task")
-async def process_task(request: TaskRequest):
+async def process_task_endpoint(request: TaskRequest):
+    """
+    Endpoint to process a task using the intelligent agent.
+    Receives a task description and context, returns the agent's decision and explanation.
+    """
+    if not agent: # Should ideally not happen if __init__ is robust or raises
+        raise HTTPException(status_code=500, detail="Agent not initialized. Check server logs.")
     try:
-        # Process the task using the agent
-        result = agent.process_task(request.task_description, request.context)
-        
-        # Generate explanation for the decision
-        explanation = explainer.explain_decision(result)
-        
-        return {
-            "status": "success",
-            "result": result,
-            "explanation": explanation
-        }
+        # The Agent's process_task method is asynchronous
+        result = await agent.process_task(request.task_description, request.context)
+        return result
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        # Catch any other unexpected errors during task processing
+        print(f"Error during task processing: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"An internal server error occurred: {str(e)}")
 
-@app.get("/api/explanation/{decision_id}")
-async def get_explanation(decision_id: str, format: str = "text"):
-    try:
-        explanation = explainer.get_explanation(decision_id, format)
-        return {
-            "status": "success",
-            "explanation": explanation
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+@app.get("/")
+async def read_root():
+    return {"message": "Welcome to the Agentic-XAI API. Use the /api/task endpoint to submit tasks."}
 
-@app.get("/api/health")
-async def health_check():
-    return {"status": "healthy", "version": "1.0.0"} 
+# To run this application (from the backend directory):
+# uvicorn app.main:app --reload
