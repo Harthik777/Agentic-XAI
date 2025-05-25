@@ -6,7 +6,8 @@
       "use": "@vercel/static-build",
       "config": {
         "distDir": "build",
-        "buildCommand": "cd frontend && npm install --legacy-peer-deps && CI=false npm run build"
+        "buildCommand": "cd frontend && npm install --legacy-peer-deps && npm run build",
+        "nodeVersion": "18.x"
       }
     },
     {
@@ -30,7 +31,6 @@
   ],
   "env": {
     "PYTHONPATH": "backend",
-    "NODE_ENV": "production",
-    "CI": "false"
+    "NODE_ENV": "production"
   }
 } 
