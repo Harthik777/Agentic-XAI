@@ -16,19 +16,9 @@
     "react-scripts": "5.0.1",
     "web-vitals": "^2.1.4"
   },
-  "overrides": {
-    "sourcemap-codec": "@jridgewell/sourcemap-codec@^1.4.15",
-    "w3c-hr-time": "^2.0.0",
-    "stable": "^0.1.8",
-    "workbox-cacheable-response": "^7.0.0",
-    "workbox-google-analytics": "^7.0.0",
-    "inflight": "^2.0.0",
-    "q": "^1.5.1",
-    "rollup-plugin-terser": "@rollup/plugin-terser@^0.4.4"
-  },
   "scripts": {
     "start": "react-scripts start",
-    "build": "GENERATE_SOURCEMAP=false react-scripts build",
+    "build": "CI=false GENERATE_SOURCEMAP=false react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
@@ -49,6 +39,10 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
   },
   "main": "index.js",
   "keywords": [],
