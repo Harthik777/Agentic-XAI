@@ -3,7 +3,6 @@ import {
   Container,
   Box,
   Typography,
-  Grid,
   Paper,
   CircularProgress,
 } from '@mui/material';
@@ -11,7 +10,7 @@ import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import TaskForm from './components/TaskForm';
 import ExplanationView from './components/ExplanationView';
-import { TaskResponse, Explanation } from './types'; // Ensure Explanation is imported if used directly
+import { TaskResponse } from './types';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
@@ -35,7 +34,6 @@ function App() {
   const handleTaskSubmit = async (taskDescription: string, context: any) => {
     setLoading(true);
     setError(null);
-    // setTaskResponse(null); // Optionally clear previous response immediately
 
     try {
       const response = await fetch(`${API_URL}/api/task`, {
@@ -50,7 +48,6 @@ function App() {
       });
 
       if (!response.ok) {
-        // Try to get more specific error from response body if possible
         let errorData;
         try {
           errorData = await response.json();
@@ -61,7 +58,6 @@ function App() {
         throw new Error(errorMessage);
       }
 
-      // Check if the response is empty before trying to parse JSON
       const responseText = await response.text();
       if (!responseText) {
         console.error("Received empty response from API");
@@ -71,15 +67,13 @@ function App() {
         return;
       }
 
-      const data: any = JSON.parse(responseText); // Parse text after checking it's not empty
+      const data: any = JSON.parse(responseText);
 
-      // Validate the structure of data before setting it
       if (data && typeof data.decision === 'string' && data.explanation && typeof data.explanation === 'object') {
-        // Further check if explanation has the required nested properties
-        const exp = data.explanation as Explanation; // Cast for easier access
+        const exp = data.explanation;
         if (Array.isArray(exp.reasoning_steps) && typeof exp.feature_importance === 'object' && typeof exp.model_details === 'object') {
           setTaskResponse(data as TaskResponse);
-          setError(null); // Clear previous errors
+          setError(null);
         } else {
           console.error("Received data with malformed explanation structure:", data);
           setError("Received data with an invalid explanation structure from the server.");
@@ -93,7 +87,7 @@ function App() {
     } catch (err) {
       console.error("Fetch error:", err);
       setError(err instanceof Error ? err.message : 'An unknown error occurred during fetch.');
-      setTaskResponse(null); // Ensure taskResponse is null on error
+      setTaskResponse(null);
     } finally {
       setLoading(false);
     }
@@ -111,13 +105,20 @@ function App() {
             Intelligent Agent with Explainable AI
           </Typography>
 
-          <Grid container spacing={3}>
-            <Grid size={{ xs: 12, md: 6 }}>
+          <Box 
+            sx={{ 
+              display: 'flex', 
+              flexDirection: { xs: 'column', md: 'row' }, 
+              gap: 3,
+              mt: 3
+            }}
+          >
+            <Box sx={{ flex: 1 }}>
               <Paper elevation={3} sx={{ p: 3 }}>
                 <TaskForm onSubmit={handleTaskSubmit} loading={loading} />
               </Paper>
-            </Grid>
-            <Grid size={{ xs: 12, md: 6 }}>
+            </Box>
+            <Box sx={{ flex: 1 }}>
               <Paper elevation={3} sx={{ p: 3 }}>
                 {loading ? (
                   <Box display="flex" justifyContent="center" alignItems="center" minHeight={200}>
@@ -133,8 +134,8 @@ function App() {
                   </Typography>
                 )}
               </Paper>
-            </Grid>
-          </Grid>
+            </Box>
+          </Box>
         </Box>
       </Container>
     </ThemeProvider>

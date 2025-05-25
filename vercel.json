@@ -1,21 +1,13 @@
 {
   "version": 2,
+  "buildCommand": "cd frontend && npm install --legacy-peer-deps && npm run build",
+  "outputDirectory": "frontend/build",
   "builds": [
-    {
-      "src": "frontend/package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "build",
-        "buildCommand": "cd frontend && npm install --legacy-peer-deps && npm run build",
-        "nodeVersion": "18.x"
-      }
-    },
     {
       "src": "backend/app/main.py",
       "use": "@vercel/python",
       "config": {
-        "runtime": "python3.9",
-        "buildCommand": "cd backend && pip install --no-cache-dir -r requirements.txt"
+        "runtime": "python3.9"
       }
     }
   ],

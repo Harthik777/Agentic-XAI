@@ -4,7 +4,6 @@ import {
   Button,
   Box,
   Typography,
-  Paper,
 } from '@mui/material';
 import { TaskFormProps } from '../types';
 
@@ -14,7 +13,13 @@ const TaskForm: React.FC<TaskFormProps> = ({ onSubmit, loading }) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const contextObj = context ? JSON.parse(context) : {};
+    let contextObj = {};
+    try {
+      contextObj = context ? JSON.parse(context) : {};
+    } catch (err) {
+      alert('Invalid JSON in context field.');
+      return;
+    }
     await onSubmit(taskDescription, contextObj);
   };
 

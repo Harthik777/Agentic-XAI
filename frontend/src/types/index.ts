@@ -1,21 +1,15 @@
+export interface Explanation {
+  reasoning_steps: string[];
+  feature_importance: Record<string, number>;
+  model_details: {
+    name: string;
+    type: string;
+  };
+}
+
 export interface TaskResponse {
-  status: string;
-  result: {
-    decision_id: string;
-    decision: string;
-    confidence: number;
-  };
-  explanation: {
-    shap: {
-      token_importance: Record<string, number>;
-      method: string;
-    };
-    lime: {
-      features: Array<[string, number]>;
-      method: string;
-    };
-    natural_language: string;
-  };
+  decision: string;
+  explanation: Explanation;
 }
 
 export interface TaskFormProps {
