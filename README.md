@@ -21,29 +21,65 @@ agentic-xai/
 ├── frontend/               # React frontend
 │   ├── src/               # Source code
 │   └── public/            # Static assets
-└── requirements.txt        # Python dependencies
+├── requirements.txt        # Python dependencies
+├── start-dev.bat          # Windows batch script to start both servers
+└── start-dev.ps1          # PowerShell script to start both servers
 ```
 
-## Setup Instructions
+## Quick Start
 
-1. Clone the repository
-2. Set up the backend:
+### Option 1: Use the automated scripts (Windows)
+```bash
+# Using batch file
+start-dev.bat
+
+# Or using PowerShell
+.\start-dev.ps1
+```
+
+### Option 2: Manual setup
+
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd agentic-xai
+   ```
+
+2. **Set up the backend:**
    ```bash
    cd backend
    pip install -r requirements.txt
-   uvicorn app.main:app --reload
+   python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
    ```
-3. Set up the frontend:
+
+3. **Set up the frontend (in a new terminal):**
    ```bash
    cd frontend
-   npm install
+   npm install --legacy-peer-deps
    npm start
    ```
+
+## Common Issues & Solutions
+
+### Issue: `npm start` fails with "Could not read package.json"
+**Solution:** Make sure you're running `npm start` from the `frontend` directory, not the root directory.
+
+### Issue: Vercel deployment fails with pip3.12 error
+**Solution:** The project has been updated to use Python 3.12. Make sure your local environment matches:
+- Updated `vercel.json` to use `python3.12`
+- Updated `backend/runtime.txt` to `python-3.12.0`
+- Updated dependencies to Python 3.12 compatible versions
+
+## Development URLs
+
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:8000
+- Backend API Documentation: http://localhost:8000/docs
 
 ## Technologies Used
 
 - Backend:
-  - Python 3.9+
+  - Python 3.12
   - FastAPI
   - PyTorch
   - SHAP (SHapley Additive exPlanations)
@@ -54,6 +90,13 @@ agentic-xai/
   - TypeScript
   - Material-UI
   - D3.js for visualizations
+
+## Deployment
+
+This project is configured for deployment on Vercel with:
+- Frontend built from the `frontend` directory
+- Backend deployed as a Python serverless function
+- Automatic builds on push to main branch
 
 ## License
 
