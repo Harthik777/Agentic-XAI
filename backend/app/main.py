@@ -35,7 +35,6 @@ except Exception as e:
     # Depending on how critical the agent is at startup, you might choose to exit
     # or allow the app to start and handle the error per-request in process_task.
     # For now, we let it proceed, and the Agent class handles the None client.
-    agent = Agent() # Attempt again, or ensure Agent() can be instantiated minimally
 
 
 class TaskRequest(BaseModel):

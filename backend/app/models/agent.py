@@ -3,7 +3,7 @@ import json
 import replicate # Import the replicate library
 
 # Placeholder for actual XAI logic
-# from ..xai.explainer import XAIExplainer # Assuming you might have this
+from ..xai.explainer import XAIExplainer # Assuming you might have this
 
 class Agent:
     # Updated model_name with the new version hash provided by the user
@@ -25,7 +25,12 @@ class Agent:
             print(f"Error initializing Replicate client: {e}")
             # self.replicate_client will remain None
 
-        # self.explainer = XAIExplainer() # If you have an explainer
+        try:
+            self.explainer = XAIExplainer()
+            print("XAIExplainer initialized.")
+        except Exception as e:
+            print(f"Error initializing XAIExplainer: {e}")
+            self.explainer = None # Ensure explainer is None if init fails
 
     async def process_task(self, task_description: str, context: dict) -> dict:
         if not self.replicate_client:
@@ -96,8 +101,54 @@ class Agent:
             # This parsing logic is highly dependent on how the Llama model (or your chosen model)
             # formats its response. You might need to use string manipulation or regex.
             # For now, we'll use the full output as reasoning and a generic decision.
-            decision = "Decision based on model output (parsing needed)" 
-            reasoning = full_model_output 
+
+            # --- Start of parsing logic ---
+            decision_marker = "Decision:"
+            reasoning_marker = "Reasoning:"
+
+            decision_pos = full_model_output.find(decision_marker)
+            reasoning_pos = full_model_output.find(reasoning_marker)
+
+            if decision_pos != -1:
+                if reasoning_pos != -1 and reasoning_pos > decision_pos:
+                    decision = full_model_output[decision_pos + len(decision_marker):reasoning_pos].strip()
+                else:
+                    decision = full_model_output[decision_pos + len(decision_marker):].strip()
+            else:
+                # Fallback: first sentence is decision
+                end_sentence_chars = ['.', '!', '?']
+                first_sentence_end = -1
+                for char_marker in end_sentence_chars:
+                    pos = full_model_output.find(char_marker)
+                    if pos != -1:
+                        if first_sentence_end == -1 or pos < first_sentence_end:
+                            first_sentence_end = pos
+
+                if first_sentence_end != -1:
+                    decision = full_model_output[:first_sentence_end + 1].strip()
+                else: # If no sentence end marker, take a small chunk or whole thing
+                    decision = full_model_output[:100].strip() # Fallback to first 100 chars or less
+
+            if reasoning_pos != -1:
+                reasoning = full_model_output[reasoning_pos + len(reasoning_marker):].strip()
+            else:
+                # Fallback: rest of the output is reasoning
+                if decision_pos == -1 and first_sentence_end != -1 : # used fallback for decision
+                     reasoning = full_model_output[first_sentence_end + 1:].strip()
+                elif decision_pos != -1 and reasoning_pos == -1 : # decision marker found, but no reasoning marker
+                    # This case means reasoning should be empty if decision took the rest of the string
+                    if (decision_pos + len(decision_marker) + len(decision)) >= len(full_model_output):
+                        reasoning = ""
+                    else: # Should not happen if decision parsing is correct
+                        reasoning = full_model_output[decision_pos + len(decision_marker) + len(decision):].strip()
+                else: # No markers at all, and no sentence found for decision
+                    reasoning = full_model_output[len(decision):].strip() if len(full_model_output) > len(decision) else ""
+
+            if not decision and not reasoning and full_model_output: # If parsing somehow fails, use full output for reasoning
+                decision = "Could not parse decision."
+                reasoning = full_model_output # Ensure reasoning gets the full output if all else fails
+
+            # --- End of parsing logic ---
             # --------------------------------------------------------------------
 
             reasoning_steps = [
@@ -105,21 +156,36 @@ class Agent:
                 f"Analyzed context (first 100 chars): {context_str[:100]}...",
                 f"Formatted prompt for model (first 100 chars): {prompt[:100]}...",
                 f"Raw model output (first 100 chars): {str(full_model_output)[:100]}...",
-                f"Interpreted decision: {decision}",
-                f"Interpreted reasoning (full model output): {reasoning}"
+                f"Parsed decision: {decision}",
+                f"Parsed reasoning: {reasoning}"
             ]
 
-            # Dummy feature importance (replace with actual XAI method output from your explainer)
-            # feature_importance = self.explainer.explain(input_data_for_xai, decision)
-            feature_importance = {
-                "info": "Feature importance calculation not yet implemented.",
-                "task_description_length": len(task_description),
-                "context_payload_size_chars": len(context_str),
-            }
-            if isinstance(context, dict):
-                for key_item in list(context.keys())[:5]: # Limit to first 5 keys for brevity
-                    feature_importance[f"context_key_{key_item}_present"] = 1
+            # --- XAI Explanation Generation ---
+            if self.explainer:
+                try:
+                    # Ensure decision is a string, as XAIExplainer expects text
+                    decision_text_for_xai = decision if isinstance(decision, str) else json.dumps(decision)
 
+                    decision_data_for_xai = {
+                        "decision_id": None, # Caching is off in XAIExplainer
+                        "decision": decision_text_for_xai, # Pass the actual decision string
+                        "context": context_str # Pass context string
+                    }
+                    # Note: explain_decision is not an async function based on its current implementation
+                    # If it were, this would need to be awaited.
+                    xai_explanations = self.explainer.explain_decision(decision_data_for_xai)
+                    feature_importance = xai_explanations
+                except Exception as e:
+                    print(f"Error generating XAI explanations: {e}")
+                    feature_importance = {
+                        "error": "Failed to generate XAI explanations.",
+                        "details": str(e)
+                    }
+            else:
+                feature_importance = {
+                    "info": "XAIExplainer not initialized. Skipping explanations."
+                }
+            # --- End XAI Explanation Generation ---
 
             return {
                 "decision": decision,
