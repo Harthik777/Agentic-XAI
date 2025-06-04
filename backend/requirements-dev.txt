@@ -1,0 +1,4 @@
+pytest
+pytest-asyncio
+# unittest.mock is part of standard library, no need to list it.
+# Add other development/testing specific dependencies here

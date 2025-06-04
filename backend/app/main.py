@@ -24,18 +24,20 @@ app.add_middleware(
 # Initialize the agent
 # The REPLICATE_API_TOKEN should be set as an environment variable
 # where this FastAPI application is run.
+agent: Agent | None = None
+agent_initialized_successfully: bool = False
 try:
-    agent = Agent() 
+    agent = Agent()
+    agent_initialized_successfully = True
 except Exception as e:
     # If agent initialization fails (e.g., REPLICATE_API_TOKEN missing and client init fails hard)
     # We'll log it and the agent instance might be None or in an error state.
     # The Agent class itself has a print warning for missing token,
     # but a hard failure during __init__ could be caught here.
-    print(f"Critical error initializing Agent: {e}")
-    # Depending on how critical the agent is at startup, you might choose to exit
-    # or allow the app to start and handle the error per-request in process_task.
-    # For now, we let it proceed, and the Agent class handles the None client.
-    agent = Agent() # Attempt again, or ensure Agent() can be instantiated minimally
+    print(f"CRITICAL: Agent initialization failed: {e}")
+    agent = None # Ensure agent is None if initialization fails
+    agent_initialized_successfully = False
+    # The application will continue to run, but endpoints relying on the agent will indicate its unavailability.
 
 
 class TaskRequest(BaseModel):
@@ -49,11 +51,11 @@ async def process_task_endpoint(request: TaskRequest):
     Endpoint to process a task using the intelligent agent.
     Receives a task description and context, returns the agent's decision and explanation.
     """
-    if not agent: # Should ideally not happen if __init__ is robust or raises
-        raise HTTPException(status_code=500, detail="Agent not initialized. Check server logs.")
+    if not agent_initialized_successfully or agent is None:
+        raise HTTPException(status_code=503, detail="Agent is not available due to initialization failure. Please check server logs.")
     try:
         # The Agent's process_task method is asynchronous
-        result = await agent.process_task(request.task_description, request.context)
+        result = await agent.process_task(request.task_description, request.context) # type: ignore
         return result
     except Exception as e:
         # Catch any other unexpected errors during task processing
@@ -64,7 +66,10 @@ async def process_task_endpoint(request: TaskRequest):
 
 @app.get("/")
 async def read_root():
-    return {"message": "Welcome to the Agentic-XAI API. Use the /api/task endpoint to submit tasks."}
+    if agent_initialized_successfully:
+        return {"message": "Welcome to the Agentic-XAI API. Agent is available. Use the /api/task endpoint to submit tasks."}
+    else:
+        return {"message": "Agentic-XAI API is running, but the Agent failed to initialize. Please check server logs. The /api/task endpoint will not be functional."}
 
 # To run this application (from the backend directory):
 # uvicorn app.main:app --reload
