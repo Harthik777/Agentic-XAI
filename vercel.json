@@ -29,7 +29,5 @@
   "env": {
     "PYTHONPATH": ".",
     "NODE_ENV": "production"
-  },
-  "installCommand": "cd frontend && npm install --legacy-peer-deps",
-  "buildCommand": "cd frontend && npm run build"
-} 
+  }
+}
