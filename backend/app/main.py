@@ -24,8 +24,9 @@ app.add_middleware(
 # Initialize the agent
 # The REPLICATE_API_TOKEN should be set as an environment variable
 # where this FastAPI application is run.
+agent: Agent | None = None  # Initialize agent to None with type hint
 try:
-    agent = Agent() 
+    agent = Agent()
 except Exception as e:
     # If agent initialization fails (e.g., REPLICATE_API_TOKEN missing and client init fails hard)
     # We'll log it and the agent instance might be None or in an error state.

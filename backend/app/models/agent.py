@@ -78,7 +78,7 @@ class Agent:
 
         try:
             print(f"Attempting to run Replicate model: {self.model_name}")
-            print(f"Input to Replicate (first 200 chars of prompt): {json.dumps(input_data, indent=2)[:200]}...")
+            print(f"Input to Replicate (first 200 chars of prompt): {prompt[:200]}...")
 
 
             # --- ACTUAL REPLICATE CALL ---
