@@ -1,8 +1,8 @@
-import numpy as np
-from typing import Dict, Any, List
-import json
 import re
+import json
+from typing import Dict, Any, List
 from collections import Counter
+import math
 
 class XAIExplainer:
     def __init__(self):
@@ -54,7 +54,7 @@ class XAIExplainer:
         
         for word, count in word_count.most_common(10):
             # Simple TF-like scoring
-            importance = count / total_words
+            importance = count / total_words if total_words > 0 else 0
             if len(word) > 2:  # Filter out very short words
                 word_importance[word] = round(importance, 3)
         
