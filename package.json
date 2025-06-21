@@ -1,10 +1,18 @@
 {
   "name": "agentic-xai",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "scripts": {
-    "build": "cd frontend && npm install --legacy-peer-deps && npm run build && cp -r build/* ../"
+    "build": "node build.js",
+    "dev": "cd frontend && npm start"
+  },
+  "devDependencies": {
+    "fs-extra": "^11.2.0"
   },
   "engines": {
-    "node": ">=16.0.0"
-  }
+    "node": ">=18.0.0"
+  },
+  "description": "Agentic-XAI: Intelligent Agent with Explainable AI",
+  "keywords": ["ai", "xai", "agent", "explainable-ai"],
+  "author": "",
+  "license": "MIT"
 } 
