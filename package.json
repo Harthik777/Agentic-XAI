@@ -1,0 +1,10 @@
+{
+  "name": "agentic-xai",
+  "version": "1.0.0",
+  "scripts": {
+    "build": "cd frontend && npm install --legacy-peer-deps && npm run build && cp -r build/* ../"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+} 

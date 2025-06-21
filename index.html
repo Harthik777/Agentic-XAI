@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agentic-XAI</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #1976d2;
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        textarea, input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        button {
+            background-color: #1976d2;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+        }
+        button:hover {
+            background-color: #1565c0;
+        }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .error {
+            color: #d32f2f;
+            background-color: #ffebee;
+            border-color: #f8bbd9;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+        }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+        <h1>🤖 Agentic-XAI</h1>
+        <p style="text-align: center; color: #666; margin-bottom: 30px;">
+            Intelligent Agent with Explainable AI
+        </p>
+        
+        <form id="taskForm">
+            <div class="form-group">
+                <label for="taskDescription">Task Description:</label>
+                <textarea 
+                    id="taskDescription" 
+                    rows="4" 
+                    placeholder="Describe the task you want the AI agent to analyze..."
+                    required></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="context">Context (JSON format):</label>
+                <textarea 
+                    id="context" 
+                    rows="3" 
+                    placeholder='{"key": "value", "example": "data"}'></textarea>
+            </div>
+            
+            <button type="submit" id="submitBtn">Analyze Task</button>
+        </form>
+        
+        <div id="result" style="display: none;"></div>
+    </div>
+
+    <script>
+        document.getElementById('taskForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const submitBtn = document.getElementById('submitBtn');
+            const resultDiv = document.getElementById('result');
+            const taskDescription = document.getElementById('taskDescription').value;
+            const contextText = document.getElementById('context').value;
+            
+            // Disable button and show loading
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Analyzing...';
+            resultDiv.style.display = 'block';
+            resultDiv.className = 'result loading';
+            resultDiv.innerHTML = '<p>🔄 Processing your request...</p>';
+            
+            try {
+                // Parse context JSON
+                let context = {};
+                if (contextText.trim()) {
+                    try {
+                        context = JSON.parse(contextText);
+                    } catch (err) {
+                        throw new Error('Invalid JSON in context field');
+                    }
+                }
+                
+                // Make API request
+                const response = await fetch('/api/task', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        task_description: taskDescription,
+                        context: context
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                // Display results
+                resultDiv.className = 'result';
+                resultDiv.innerHTML = `
+                    <h3>🎯 Agent's Decision</h3>
+                    <p><strong>${data.decision}</strong></p>
+                    
+                    <h3>🧠 Explanation</h3>
+                    <h4>Reasoning Steps:</h4>
+                    <ol>
+                        ${data.explanation.reasoning_steps.map(step => `<li>${step}</li>`).join('')}
+                    </ol>
+                    
+                    <h4>Feature Importance:</h4>
+                    <ul>
+                        ${Object.entries(data.explanation.feature_importance)
+                            .map(([feature, importance]) => `<li><strong>${feature}:</strong> ${importance}</li>`)
+                            .join('')}
+                    </ul>
+                    
+                    <h4>Model Details:</h4>
+                    <p><strong>Name:</strong> ${data.explanation.model_details.name}</p>
+                    <p><strong>Type:</strong> ${data.explanation.model_details.type}</p>
+                `;
+                
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `<p><strong>Error:</strong> ${error.message}</p>`;
+            } finally {
+                // Re-enable button
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Analyze Task';
+            }
+        });
+    </script>
+  </body>
+</html> 
