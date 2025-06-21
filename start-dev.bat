@@ -1,36 +1,62 @@
 @echo off
-echo Starting Agentic-XAI Development Servers...
-echo.
+echo =======================================
+echo Starting Agentic-XAI Development Environment...
+echo =======================================
 
-REM Check if .env file exists
-if not exist ".env" (
-    echo WARNING: .env file not found. Creating from .env.example...
-    if exist ".env.example" (
-        copy ".env.example" ".env"
-        echo Please edit .env file and add your REPLICATE_API_TOKEN
-        echo.
-    ) else (
-        echo ERROR: .env.example file not found. Please create .env manually.
-        echo.
-    )
+:: Check if Python is installed
+python --version >nul 2>&1
+if errorlevel 1 (
+    echo Error: Python is not installed or not in PATH
+    pause
+    exit /b 1
 )
 
-REM Start backend server
-echo Starting Backend Server...
-start "Backend Server" cmd /k "cd backend && pip install -r requirements.txt && python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000"
+:: Check if Node.js is installed
+node --version >nul 2>&1
+if errorlevel 1 (
+    echo Error: Node.js is not installed or not in PATH
+    pause
+    exit /b 1
+)
 
-REM Wait a moment for backend to start
-timeout /t 3 /nobreak >nul
+echo Setting up backend...
+cd backend
 
-REM Start frontend server
-echo Starting Frontend Server...
-start "Frontend Server" cmd /k "cd frontend && npm install --legacy-peer-deps && npm start"
+:: Create virtual environment if it doesn't exist
+if not exist "venv" (
+    echo Creating virtual environment...
+    python -m venv venv
+)
 
-echo.
-echo Development servers are starting...
+:: Activate virtual environment and install dependencies
+echo Installing Python dependencies...
+call venv\Scripts\activate.bat
+pip install -r requirements.txt
+
+:: Start backend server in a new window
+echo Starting backend server...
+start "Backend Server" cmd /k "venv\Scripts\activate.bat && python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000"
+
+:: Go back to root and setup frontend
+cd ..
+echo Setting up frontend...
+cd frontend
+
+:: Install frontend dependencies
+echo Installing frontend dependencies...
+call npm install
+
+:: Start frontend development server in a new window
+echo Starting frontend development server...
+start "Frontend Server" cmd /k "npm start"
+
+cd ..
+
+echo =======================================
+echo Development servers are starting up!
 echo Backend API: http://localhost:8000
+echo Backend Docs: http://localhost:8000/docs
 echo Frontend: http://localhost:3000
-echo API Docs: http://localhost:8000/docs
-echo.
+echo =======================================
 echo Press any key to exit...
-pause >nul 
+pause 

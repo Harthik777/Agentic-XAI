@@ -5,10 +5,17 @@ import {
   Paper,
   List,
   ListItem,
+  ListItemIcon,
   ListItemText,
   Divider,
   Chip,
+  LinearProgress,
+  Alert,
+  Card,
+  CardContent,
 } from '@mui/material';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import InfoIcon from '@mui/icons-material/Info';
 import { TaskResponse } from '../types';
 
 interface ExplanationViewProps {
@@ -16,91 +23,173 @@ interface ExplanationViewProps {
 }
 
 const ExplanationView: React.FC<ExplanationViewProps> = ({ response }) => {
-  if (!response || typeof response.decision !== 'string' || !response.explanation || typeof response.explanation !== 'object') {
+  if (!response) {
     return (
-      <Paper elevation={1} sx={{ p: 2, backgroundColor: 'error.light' }}>
-        <Typography variant="h6" color="error.contrastText">Error</Typography>
-        <Typography color="error.contrastText">
-          Explanation data is missing or malformed. Cannot display details.
-        </Typography>
-      </Paper>
+      <Alert severity="error">
+        No response data available
+      </Alert>
     );
   }
 
-  const { decision, explanation } = response;
+  const { decision, explanation, success } = response;
+
+  if (!success) {
+    return (
+      <Alert severity="error">
+        <Typography variant="h6">Task Processing Failed</Typography>
+        <Typography>{decision}</Typography>
+      </Alert>
+    );
+  }
+
+  if (!explanation) {
+    return (
+      <Alert severity="warning">
+        Decision received but explanation data is missing
+      </Alert>
+    );
+  }
+
   const { reasoning_steps, feature_importance, model_details } = explanation;
 
+  // Calculate max importance for scaling
+  const maxImportance = Math.max(...Object.values(feature_importance || {}));
+
   return (
-    <Box sx={{ maxHeight: '70vh', overflowY: 'auto', p: 0.5 }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
       <Typography variant="h5" component="h3" gutterBottom>
-        Agent's Decision
-      </Typography>
-      <Paper elevation={2} sx={{ p: 2, mb: 2, backgroundColor: 'primary.light', color: 'primary.contrastText' }}>
-        <Typography variant="h6">{decision}</Typography>
-      </Paper>
-
-      <Typography variant="h5" component="h3" gutterBottom sx={{ mt: 3 }}>
-        Explanation
+        Agent's Analysis
       </Typography>
 
-      <Paper elevation={2} sx={{ p: 2, mb: 2 }}>
-        <Typography variant="h6" gutterBottom>
-          Reasoning Steps:
+      {/* Decision Section */}
+      <Card elevation={2} sx={{ bgcolor: 'primary.main', color: 'primary.contrastText' }}>
+        <CardContent>
+          <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <CheckCircleIcon />
+            Decision
+          </Typography>
+          <Typography variant="body1" sx={{ fontSize: '1.1rem', lineHeight: 1.5 }}>
+            {decision}
+          </Typography>
+        </CardContent>
+      </Card>
+
+      {/* Reasoning Steps */}
+      <Paper elevation={2} sx={{ p: 3 }}>
+        <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <InfoIcon color="primary" />
+          Reasoning Process
         </Typography>
+        
         {reasoning_steps && reasoning_steps.length > 0 ? (
           <List dense>
             {reasoning_steps.map((step, index) => (
               <React.Fragment key={index}>
-                <ListItem>
-                  <ListItemText primary={`${index + 1}. ${step}`} />
+                <ListItem sx={{ pl: 0 }}>
+                  <ListItemIcon sx={{ minWidth: 36 }}>
+                    <Box
+                      sx={{
+                        width: 24,
+                        height: 24,
+                        borderRadius: '50%',
+                        bgcolor: 'primary.main',
+                        color: 'primary.contrastText',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '0.8rem',
+                        fontWeight: 'bold'
+                      }}
+                    >
+                      {index + 1}
+                    </Box>
+                  </ListItemIcon>
+                  <ListItemText 
+                    primary={step}
+                    primaryTypographyProps={{
+                      sx: { fontSize: '0.95rem', lineHeight: 1.4 }
+                    }}
+                  />
                 </ListItem>
-                {index < reasoning_steps.length - 1 && <Divider component="li" />}
+                {index < reasoning_steps.length - 1 && (
+                  <Divider variant="inset" component="li" sx={{ ml: 4 }} />
+                )}
               </React.Fragment>
             ))}
           </List>
         ) : (
-          <Typography>No reasoning steps provided.</Typography>
+          <Typography color="text.secondary">
+            No reasoning steps provided
+          </Typography>
         )}
       </Paper>
 
-      <Paper elevation={2} sx={{ p: 2, mb: 2 }}>
+      {/* Feature Importance */}
+      <Paper elevation={2} sx={{ p: 3 }}>
         <Typography variant="h6" gutterBottom>
-          Feature Importance:
+          Feature Importance Analysis
         </Typography>
+        
         {feature_importance && Object.keys(feature_importance).length > 0 ? (
-          <Box 
-            sx={{ 
-              display: 'flex', 
-              flexWrap: 'wrap', 
-              gap: 1 
-            }}
-          >
-            {Object.entries(feature_importance).map(([feature, importance]) => (
-              <Box key={feature} sx={{ minWidth: { xs: '100%', sm: '48%' } }}>
-                <Chip
-                  label={`${feature}: ${typeof importance === 'number' ? importance.toFixed(2) : importance}`}
-                  variant="outlined"
-                  sx={{ width: '100%', justifyContent: 'flex-start', pl: 1 }}
-                />
-              </Box>
-            ))}
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            {Object.entries(feature_importance)
+              .sort(([, a], [, b]) => b - a) // Sort by importance
+              .map(([feature, importance]) => (
+                <Box key={feature}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+                    <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                      {feature.replace(/_/g, ' ')}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {(importance * 100).toFixed(1)}%
+                    </Typography>
+                  </Box>
+                  <LinearProgress
+                    variant="determinate"
+                    value={(importance / maxImportance) * 100}
+                    sx={{
+                      height: 8,
+                      borderRadius: 4,
+                      bgcolor: 'grey.200',
+                      '& .MuiLinearProgress-bar': {
+                        borderRadius: 4,
+                        bgcolor: importance > 0.5 ? 'success.main' : 
+                                importance > 0.3 ? 'warning.main' : 'info.main'
+                      }
+                    }}
+                  />
+                </Box>
+              ))}
           </Box>
         ) : (
-          <Typography>No feature importance data available.</Typography>
+          <Typography color="text.secondary">
+            No feature importance data available
+          </Typography>
         )}
       </Paper>
 
-      <Paper elevation={2} sx={{ p: 2 }}>
+      {/* Model Details */}
+      <Paper elevation={1} sx={{ p: 3, bgcolor: 'grey.50' }}>
         <Typography variant="h6" gutterBottom>
-          Model Details:
+          Model Information
         </Typography>
         {model_details ? (
-          <>
-            <Typography><strong>Name:</strong> {model_details.name || 'N/A'}</Typography>
-            <Typography><strong>Type:</strong> {model_details.type || 'N/A'}</Typography>
-          </>
+          <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+            <Chip 
+              label={`Name: ${model_details.name}`} 
+              variant="outlined" 
+              size="small"
+            />
+            <Chip 
+              label={`Type: ${model_details.type}`} 
+              variant="outlined" 
+              size="small"
+            />
+          </Box>
         ) : (
-          <Typography>No model details available.</Typography>
+          <Typography color="text.secondary">
+            No model details available
+          </Typography>
         )}
       </Paper>
     </Box>

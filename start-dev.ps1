@@ -1,32 +1,63 @@
-# Agentic-XAI Development Server Script (PowerShell)
-Write-Host "Starting Agentic-XAI Development Servers...`n" -ForegroundColor Green
+# Agentic-XAI Development Startup Script
+Write-Host "Starting Agentic-XAI Development Environment..." -ForegroundColor Green
+Write-Host "=======================================" -ForegroundColor Green
 
-# Check if .env file exists
-if (-not (Test-Path ".env")) {
-    Write-Host "WARNING: .env file not found. Creating from .env.example..." -ForegroundColor Yellow
-    if (Test-Path ".env.example") {
-        Copy-Item ".env.example" ".env"
-        Write-Host "Please edit .env file and add your REPLICATE_API_TOKEN`n" -ForegroundColor Yellow
-    } else {
-        Write-Host "ERROR: .env.example file not found. Please create .env manually.`n" -ForegroundColor Red
-    }
+# Check if Python is installed
+if (-not (Get-Command python -ErrorAction SilentlyContinue)) {
+    Write-Host "Error: Python is not installed or not in PATH" -ForegroundColor Red
+    exit 1
 }
 
-# Start backend server
-Write-Host "Starting Backend Server..." -ForegroundColor Cyan
-Start-Process PowerShell -ArgumentList "-Command", "cd backend; pip install -r requirements.txt; python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000" -WindowStyle Normal
+# Check if Node.js is installed
+if (-not (Get-Command node -ErrorAction SilentlyContinue)) {
+    Write-Host "Error: Node.js is not installed or not in PATH" -ForegroundColor Red
+    exit 1
+}
 
-# Wait a moment for backend to start
-Start-Sleep -Seconds 3
+Write-Host "Setting up backend..." -ForegroundColor Yellow
+Set-Location backend
 
-# Start frontend server
-Write-Host "Starting Frontend Server..." -ForegroundColor Cyan
-Start-Process PowerShell -ArgumentList "-Command", "cd frontend; npm install --legacy-peer-deps; npm start" -WindowStyle Normal
+# Install Python dependencies
+if (-not (Test-Path "venv")) {
+    Write-Host "Creating virtual environment..." -ForegroundColor Yellow
+    python -m venv venv
+}
 
-Write-Host "`nDevelopment servers are starting..." -ForegroundColor Green
-Write-Host "Backend API: http://localhost:8000" -ForegroundColor White
-Write-Host "Frontend: http://localhost:3000" -ForegroundColor White
-Write-Host "API Docs: http://localhost:8000/docs" -ForegroundColor White
-Write-Host "`nPress any key to exit..." -ForegroundColor Yellow
+Write-Host "Activating virtual environment..." -ForegroundColor Yellow
+& .\venv\Scripts\Activate.ps1
 
-$null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown") 
+Write-Host "Installing Python dependencies..." -ForegroundColor Yellow
+pip install -r requirements.txt
+
+Write-Host "Starting backend server..." -ForegroundColor Yellow
+Start-Process powershell -ArgumentList "-Command", "cd '$PWD'; .\venv\Scripts\Activate.ps1; python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000"
+
+# Go back to root and setup frontend
+Set-Location ..
+Write-Host "Setting up frontend..." -ForegroundColor Yellow
+Set-Location frontend
+
+Write-Host "Installing frontend dependencies..." -ForegroundColor Yellow
+npm install
+
+Write-Host "Starting frontend development server..." -ForegroundColor Yellow
+Start-Process powershell -ArgumentList "-Command", "cd '$PWD'; npm start"
+
+Set-Location ..
+
+Write-Host "=======================================" -ForegroundColor Green
+Write-Host "Development servers are starting up!" -ForegroundColor Green
+Write-Host "Backend API: http://localhost:8000" -ForegroundColor Cyan
+Write-Host "Backend Docs: http://localhost:8000/docs" -ForegroundColor Cyan
+Write-Host "Frontend: http://localhost:3000" -ForegroundColor Cyan
+Write-Host "=======================================" -ForegroundColor Green
+Write-Host "Press Ctrl+C to stop the servers" -ForegroundColor Yellow
+
+# Keep the script running
+try {
+    while ($true) {
+        Start-Sleep -Seconds 1
+    }
+} catch {
+    Write-Host "Shutting down..." -ForegroundColor Yellow
+} 

@@ -5,6 +5,9 @@ import {
   Typography,
   Paper,
   CircularProgress,
+  Alert,
+  Snackbar,
+  Grid,
 } from '@mui/material';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
@@ -12,7 +15,9 @@ import TaskForm from './components/TaskForm';
 import ExplanationView from './components/ExplanationView';
 import { TaskResponse } from './types';
 
-const API_URL = process.env.NODE_ENV === 'production' ? '' : (process.env.REACT_APP_API_URL || 'http://localhost:8000');
+const API_URL = process.env.NODE_ENV === 'production' 
+  ? '' 
+  : (process.env.REACT_APP_API_URL || 'http://localhost:8000');
 
 const theme = createTheme({
   palette: {
@@ -23,6 +28,17 @@ const theme = createTheme({
     secondary: {
       main: '#dc004e',
     },
+    background: {
+      default: '#f5f5f5',
+    },
+  },
+  typography: {
+    h3: {
+      fontWeight: 600,
+    },
+    h6: {
+      fontWeight: 500,
+    },
   },
 });
 
@@ -30,10 +46,12 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [taskResponse, setTaskResponse] = useState<TaskResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [showError, setShowError] = useState(false);
 
   const handleTaskSubmit = async (taskDescription: string, context: any) => {
     setLoading(true);
     setError(null);
+    setShowError(false);
 
     try {
       const response = await fetch(`${API_URL}/api/task`, {
@@ -54,89 +72,102 @@ function App() {
         } catch (e) {
           // Ignore if response body is not JSON
         }
-        const errorMessage = errorData?.detail || `HTTP error! status: ${response.status}`;
+        const errorMessage = errorData?.detail || `Server error: ${response.status}`;
         throw new Error(errorMessage);
       }
 
-      const responseText = await response.text();
-      if (!responseText) {
-        console.error("Received empty response from API");
-        setError("Received an empty response from the server.");
-        setTaskResponse(null);
-        setLoading(false);
-        return;
-      }
+      const data: TaskResponse = await response.json();
 
-      const data: any = JSON.parse(responseText);
-
-      if (data && typeof data.decision === 'string' && data.explanation && typeof data.explanation === 'object') {
-        const exp = data.explanation;
-        if (Array.isArray(exp.reasoning_steps) && typeof exp.feature_importance === 'object' && typeof exp.model_details === 'object') {
-          setTaskResponse(data as TaskResponse);
-          setError(null);
-        } else {
-          console.error("Received data with malformed explanation structure:", data);
-          setError("Received data with an invalid explanation structure from the server.");
-          setTaskResponse(null);
-        }
+      if (data && data.decision && data.explanation) {
+        setTaskResponse(data);
+        setError(null);
       } else {
-        console.error("Received malformed or incomplete data from API:", data);
-        setError("Received malformed or incomplete data from the server.");
-        setTaskResponse(null);
+        throw new Error("Invalid response format from server");
       }
+
     } catch (err) {
-      console.error("Fetch error:", err);
-      setError(err instanceof Error ? err.message : 'An unknown error occurred during fetch.');
+      const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
+      setError(errorMessage);
+      setShowError(true);
       setTaskResponse(null);
     } finally {
       setLoading(false);
     }
   };
 
+  const handleCloseError = () => {
+    setShowError(false);
+  };
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Container maxWidth="lg">
-        <Box sx={{ my: 4 }}>
-          <Typography variant="h3" component="h1" gutterBottom align="center">
+      <Container maxWidth="xl" sx={{ py: 4 }}>
+        <Box sx={{ mb: 4, textAlign: 'center' }}>
+          <Typography variant="h3" component="h1" gutterBottom color="primary">
             Agentic-XAI
           </Typography>
-          <Typography variant="h6" component="h2" gutterBottom align="center" color="text.secondary">
+          <Typography variant="h6" component="h2" color="text.secondary">
             Intelligent Agent with Explainable AI
           </Typography>
-
-          <Box 
-            sx={{ 
-              display: 'flex', 
-              flexDirection: { xs: 'column', md: 'row' }, 
-              gap: 3,
-              mt: 3
-            }}
-          >
-            <Box sx={{ flex: 1 }}>
-              <Paper elevation={3} sx={{ p: 3 }}>
-                <TaskForm onSubmit={handleTaskSubmit} loading={loading} />
-              </Paper>
-            </Box>
-            <Box sx={{ flex: 1 }}>
-              <Paper elevation={3} sx={{ p: 3 }}>
-                {loading ? (
-                  <Box display="flex" justifyContent="center" alignItems="center" minHeight={200}>
-                    <CircularProgress />
-                  </Box>
-                ) : error ? (
-                  <Typography color="error" align="center" sx={{ p: 2 }}>{error}</Typography>
-                ) : taskResponse ? (
-                  <ExplanationView response={taskResponse} />
-                ) : (
-                  <Typography color="text.secondary" align="center" sx={{ p: 2, minHeight: 200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    Submit a task to see the agent's decision and explanation.
-                  </Typography>
-                )}
-              </Paper>
-            </Box>
-          </Box>
+          <Typography variant="body1" sx={{ mt: 2, maxWidth: 600, mx: 'auto' }}>
+            Submit tasks to our AI agent and receive clear decisions along with detailed explanations
+            of the reasoning process and feature importance analysis.
+          </Typography>
         </Box>
+
+        <Grid container spacing={4}>
+          <Grid item xs={12} md={6}>
+            <Paper elevation={3} sx={{ p: 4, height: 'fit-content' }}>
+              <TaskForm onSubmit={handleTaskSubmit} loading={loading} />
+            </Paper>
+          </Grid>
+          
+          <Grid item xs={12} md={6}>
+            <Paper elevation={3} sx={{ p: 4, minHeight: 400 }}>
+              {loading ? (
+                <Box 
+                  display="flex" 
+                  flexDirection="column"
+                  justifyContent="center" 
+                  alignItems="center" 
+                  minHeight={300}
+                  gap={2}
+                >
+                  <CircularProgress size={40} />
+                  <Typography variant="body1" color="text.secondary">
+                    Processing your task...
+                  </Typography>
+                </Box>
+              ) : taskResponse ? (
+                <ExplanationView response={taskResponse} />
+              ) : (
+                <Box 
+                  display="flex" 
+                  justifyContent="center" 
+                  alignItems="center" 
+                  minHeight={300}
+                  sx={{ textAlign: 'center' }}
+                >
+                  <Typography variant="body1" color="text.secondary">
+                    Submit a task to see the agent's decision and explanation
+                  </Typography>
+                </Box>
+              )}
+            </Paper>
+          </Grid>
+        </Grid>
+
+        <Snackbar 
+          open={showError} 
+          autoHideDuration={6000} 
+          onClose={handleCloseError}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        >
+          <Alert onClose={handleCloseError} severity="error" sx={{ width: '100%' }}>
+            {error}
+          </Alert>
+        </Snackbar>
       </Container>
     </ThemeProvider>
   );

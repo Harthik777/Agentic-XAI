@@ -10,6 +10,7 @@ export interface Explanation {
 export interface TaskResponse {
   decision: string;
   explanation: Explanation;
+  success?: boolean;
 }
 
 export interface TaskFormProps {

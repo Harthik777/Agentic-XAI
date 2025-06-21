@@ -1,110 +1,265 @@
 # Agentic-XAI: Intelligent Agent with Explainable AI
 
-This project demonstrates the integration of Agentic AI and Explainable AI (XAI) concepts. It features an intelligent agent that can perform tasks while providing transparent explanations for its decisions.
+A modern, clean implementation of an Agentic AI system with comprehensive Explainable AI (XAI) capabilities. This project demonstrates how to build intelligent agents that not only make decisions but also provide transparent, detailed explanations of their reasoning process.
 
-## ⚡ Recent Optimizations (Latest Update)
+## ✨ Features
 
-- **70-80% faster Vercel builds** - Removed heavy dependencies (pandas, scikit-learn, numpy)
-- **Lightweight XAI implementation** - Uses Python standard library only
-- **Optimized for serverless deployment** - Minimal package size and fast cold starts
-- **Mock mode support** - Works without external API tokens for development
+- 🤖 **Intelligent Agent System** - Advanced AI decision-making using Replicate API
+- 🔍 **Explainable AI (XAI)** - Detailed reasoning and feature importance analysis
+- 🌐 **Modern Web Interface** - Clean, responsive React frontend with Material-UI
+- 📊 **Visual Decision Analysis** - Interactive visualizations of decision factors
+- 📝 **Natural Language Explanations** - Human-readable reasoning steps
+- 🚀 **Fast & Lightweight** - Optimized for performance and quick deployment
+- 🔧 **Mock Mode Support** - Works without API tokens for development and testing
 
-## Features
-
-- 🤖 Intelligent Agent System
-- 🔍 Explainable AI Components
-- 🌐 Modern Web Interface
-- 📊 Decision Visualization
-- 📝 Natural Language Explanations
-
-## Project Structure
+## 🏗️ Architecture
 
 ```
 agentic-xai/
 ├── backend/                 # Python FastAPI backend
-│   ├── app/                # Main application code
-│   ├── models/             # AI models and agents
-│   └── xai/                # Explainable AI components
-├── frontend/               # React frontend
-│   ├── src/               # Source code
-│   └── public/            # Static assets
-├── requirements.txt        # Python dependencies
-├── start-dev.bat          # Windows batch script to start both servers
-└── start-dev.ps1          # PowerShell script to start both servers
+│   ├── app/
+│   │   ├── main.py         # FastAPI application entry point
+│   │   ├── models/
+│   │   │   └── agent.py    # Intelligent agent implementation
+│   │   └── xai/
+│   │       └── explainer.py # XAI explanation engine
+│   └── requirements.txt    # Python dependencies
+├── frontend/               # React TypeScript frontend
+│   ├── src/
+│   │   ├── App.tsx        # Main application component
+│   │   ├── components/    # React components
+│   │   └── types/         # TypeScript type definitions
+│   └── package.json       # Node.js dependencies
+├── start-dev.bat          # Windows development startup
+├── start-dev.ps1          # PowerShell development startup
+└── vercel.json            # Deployment configuration
 ```
 
-## Quick Start
+## 🚀 Quick Start
 
-### Option 1: Use the automated scripts (Windows)
+### Prerequisites
+
+- **Python 3.11+** - For the backend API
+- **Node.js 18+** - For the frontend application
+- **Git** - For version control
+
+### Option 1: Automated Setup (Windows)
+
 ```bash
-# Using batch file
-start-dev.bat
-
-# Or using PowerShell
+# Using PowerShell (Recommended)
 .\start-dev.ps1
+
+# Or using Command Prompt
+start-dev.bat
 ```
 
-### Option 2: Manual setup
+### Option 2: Manual Setup
 
-1. **Clone the repository**
+1. **Clone and setup the project:**
    ```bash
    git clone <repository-url>
    cd agentic-xai
    ```
 
-2. **Set up the backend:**
+2. **Backend setup:**
    ```bash
    cd backend
+   python -m venv venv
+   
+   # Windows
+   venv\Scripts\activate
+   # macOS/Linux
+   source venv/bin/activate
+   
    pip install -r requirements.txt
    python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
    ```
 
-3. **Set up the frontend (in a new terminal):**
+3. **Frontend setup (in a new terminal):**
    ```bash
    cd frontend
-   npm install --legacy-peer-deps
+   npm install
    npm start
    ```
 
-## Common Issues & Solutions
+## 🌐 Access Points
 
-### Issue: `npm start` fails with "Could not read package.json"
-**Solution:** Make sure you're running `npm start` from the `frontend` directory, not the root directory.
+Once running, you can access:
 
-### Issue: Vercel deployment fails with pip3.12 error
-**Solution:** The project has been updated to use Python 3.11. Make sure your local environment matches:
-- Updated `vercel.json` to use `python3.11`
-- Updated `backend/runtime.txt` to `python-3.11.0`
-- Updated dependencies to Python 3.11 compatible versions
+- **Frontend Application**: http://localhost:3000
+- **Backend API**: http://localhost:8000
+- **API Documentation**: http://localhost:8000/docs
+- **Health Check**: http://localhost:8000/health
 
-## Development URLs
+## 🔑 Configuration
 
-- Frontend: http://localhost:3000
-- Backend API: http://localhost:8000
-- Backend API Documentation: http://localhost:8000/docs
+### Environment Variables
 
-## Technologies Used
+Create a `.env` file in the backend directory:
 
-- Backend:
-  - Python 3.11
-  - FastAPI
-  - Lightweight XAI implementation
-  - Replicate API integration
+```bash
+# Optional: Replicate API token for AI model access
+REPLICATE_API_TOKEN=your_token_here
 
-- Frontend:
-  - React
-  - TypeScript
-  - Material-UI
-  - Custom visualization components
+# The system works in mock mode without this token
+```
 
-## Deployment
+### API Configuration
 
-This project is optimized for deployment on Vercel with:
-- Frontend built from the `frontend` directory
-- Backend deployed as a Python serverless function
-- Automatic builds on push to main branch
-- **Fast builds** - Optimized dependencies for quick deployment
+The system supports two modes:
 
-## License
+1. **AI Mode**: With `REPLICATE_API_TOKEN` - Uses actual AI models
+2. **Mock Mode**: Without token - Generates demonstration responses
 
-MIT License
+## 🛠️ Usage
+
+1. **Open the application** at http://localhost:3000
+2. **Enter a task description** - Describe what you need help with
+3. **Add context (optional)** - Provide additional information as JSON
+4. **Submit the task** - Get AI decision with detailed explanation
+5. **Review the analysis** - Examine reasoning steps and feature importance
+
+### Example Tasks
+
+```
+Task: "Should we launch the new product next quarter?"
+Context: {
+  "budget": 100000,
+  "market_research_score": 8.5,
+  "competition_level": "high",
+  "team_readiness": "medium"
+}
+```
+
+```
+Task: "Recommend the best programming language for our new project"
+Context: {
+  "project_type": "web_application",
+  "team_experience": ["JavaScript", "Python"],
+  "timeline": "6_months",
+  "scalability_required": true
+}
+```
+
+## 🧠 How It Works
+
+### 1. Task Processing
+- User submits task description and optional context
+- System validates input and prepares for processing
+
+### 2. AI Decision Making
+- **AI Mode**: Calls Replicate API with optimized prompts
+- **Mock Mode**: Generates realistic demonstration responses
+- Applies decision cleaning and formatting
+
+### 3. XAI Explanation Generation
+- Analyzes task description for key insights
+- Calculates feature importance for context parameters
+- Generates step-by-step reasoning process
+- Estimates confidence levels
+
+### 4. Response Delivery
+- Returns structured JSON with decision and explanation
+- Frontend renders interactive visualizations
+- Users can explore reasoning and feature analysis
+
+## 🎨 Frontend Features
+
+- **Responsive Design** - Works on desktop and mobile
+- **Real-time Validation** - JSON context validation
+- **Interactive UI** - Collapsible sections and sample data
+- **Visual Feedback** - Progress indicators and error handling
+- **Feature Visualization** - Charts and progress bars
+
+## 🔧 Development
+
+### Code Structure
+
+- **Clean Architecture** - Separation of concerns
+- **Type Safety** - Full TypeScript support
+- **Error Handling** - Comprehensive error management
+- **Logging** - Structured logging for debugging
+- **Testing Ready** - Modular design for easy testing
+
+### Key Components
+
+- `IntelligentAgent` - Core AI decision-making logic
+- `XAIExplainer` - Explanation generation engine
+- `TaskForm` - User input and validation
+- `ExplanationView` - Results visualization
+
+## 🚀 Deployment
+
+### Vercel (Recommended)
+
+The project is optimized for Vercel deployment:
+
+1. Connect your repository to Vercel
+2. Set environment variables (optional: `REPLICATE_API_TOKEN`)
+3. Deploy - both frontend and backend will be deployed automatically
+
+### Manual Deployment
+
+- **Frontend**: Build with `npm run build` and serve static files
+- **Backend**: Deploy FastAPI app to any Python hosting service
+
+## 📝 API Reference
+
+### POST /api/task
+
+Submit a task for AI analysis:
+
+```json
+{
+  "task_description": "Your task description here",
+  "context": {
+    "key": "value",
+    "additional": "context"
+  }
+}
+```
+
+Response:
+```json
+{
+  "decision": "AI decision here",
+  "explanation": {
+    "reasoning_steps": ["Step 1", "Step 2", "..."],
+    "feature_importance": {"feature1": 0.8, "feature2": 0.2},
+    "model_details": {"name": "Agent Name", "type": "Agent Type"}
+  },
+  "success": true
+}
+```
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests if applicable
+5. Submit a pull request
+
+## 📄 License
+
+MIT License - see LICENSE file for details
+
+## 🆘 Troubleshooting
+
+### Common Issues
+
+1. **Port already in use**: Change ports in startup scripts
+2. **Python/Node not found**: Ensure they're installed and in PATH
+3. **Dependencies fail**: Check Python/Node versions
+4. **API errors**: Verify network connectivity and API tokens
+
+### Support
+
+- Check the API documentation at `/docs`
+- Review logs in the terminal
+- Ensure all dependencies are installed
+- Verify environment variables are set correctly
+
+---
+
+Built with ❤️ using FastAPI, React, and modern development practices.
