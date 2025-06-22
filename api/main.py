@@ -1,102 +1,60 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, Field
-from typing import Dict, Any, List
 import logging
 import os
 
-from models.agent import IntelligentAgent
+from routes import tasks
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# Create the FastAPI app
 app = FastAPI(
     title="Agentic-XAI API",
-    description="Intelligent Agent with Explainable AI",
-    version="3.0.0", # Version bump for new structure
+    description="A sophisticated API for an intelligent agent with Explainable AI capabilities.",
+    version="4.0.0",
     docs_url="/docs",
     redoc_url="/redoc"
 )
 
-# CORS configuration
+# Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Configure appropriately for production
+    allow_origins=["*"],  # Adjust for production
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Initialize the agent
-try:
-    agent = IntelligentAgent()
-    logger.info("Agent initialized successfully")
-except Exception as e:
-    logger.error(f"Failed to initialize agent: {e}")
-    agent = None
+# Include the task processing router
+app.include_router(tasks.router, prefix="/api", tags=["Agent Tasks"])
 
-class TaskRequest(BaseModel):
-    task_description: str = Field(..., min_length=1, description="Description of the task to be performed")
-    context: Dict[str, Any] = Field(default_factory=dict, description="Additional context for the task")
+@app.on_event("startup")
+async def startup_event():
+    """
+    Actions to perform on application startup.
+    """
+    logger.info("🚀 API is starting up...")
+    # Pre-load the agent model on startup if desired
+    # from logic.agent_logic import IntelligentAgent
+    # IntelligentAgent.get_instance()
+    logger.info("✅ API startup complete.")
 
-class ExplanationResponse(BaseModel):
-    reasoning_steps: List[str]
-    feature_importance: Dict[str, float]
-    model_details: Dict[str, str]
-    analysis_type: str
-
-class TaskResponse(BaseModel):
-    decision: str
-    explanation: ExplanationResponse
-    confidence: float
-    success: bool = True
-    
-@app.get("/api")
+@app.get("/")
 async def root():
-    """Root endpoint with API information"""
+    """
+    Root endpoint for the API.
+    """
     return {
-        "message": "Agentic-XAI API is running",
-        "version": "3.0.0",
-        "docs": "/api/docs"
+        "message": "Welcome to the Agentic-XAI API",
+        "version": app.version,
+        "documentation": "/docs"
     }
 
-@app.get("/api/health")
+@app.get("/health")
 async def health_check():
-    """Health check endpoint"""
-    agent_status = "ready" if agent else "unavailable"
-    return {
-        "status": "healthy",
-        "agent_status": agent_status,
-        "api_token_configured": bool(os.getenv("HUGGING_FACE_TOKEN"))
-    }
-
-@app.post("/api/task", response_model=TaskResponse)
-async def process_task(request: TaskRequest):
     """
-    Process a task using the intelligent agent.
-    Returns the agent's decision and explanation.
+    Health check endpoint to verify service status.
     """
-    if not agent:
-        raise HTTPException(
-            status_code=503, 
-            detail="Agent service is unavailable. Please check server configuration."
-        )
-    
-    try:
-        logger.info(f"Processing task: {request.task_description[:100]}...")
-        
-        result = await agent.process_task(
-            task_description=request.task_description,
-            context=request.context
-        )
-        
-        logger.info("Task processed successfully")
-        return result
-        
-    except Exception as e:
-        logger.error(f"Error processing task: {e}")
-        raise HTTPException(
-            status_code=500,
-            detail=f"Internal server error: {str(e)}"
-        ) 
+    return {"status": "healthy", "version": app.version} 

@@ -1,25 +1,11 @@
-export interface Explanation {
-  reasoning_steps: string[];
-  feature_importance: Record<string, number>;
-  analysis_type?: string;
-  model_details?: {
-    name: string;
-    type: string;
-  };
-}
-
-export interface TaskResponse {
+export interface Decision {
   decision: string;
-  explanation: Explanation;
   confidence: number;
-  success?: boolean;
+  reasoning: string[];
+  key_factors: { [key: string]: string };
 }
 
-export interface TaskFormProps {
-  onSubmit: (taskDescription: string, context: any) => Promise<void>;
-  loading: boolean;
+export interface TaskRequest {
+  task_description: string;
+  context: { [key: string]: any };
 }
-
-export interface ExplanationViewProps {
-  response: TaskResponse;
-} 
