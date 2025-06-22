@@ -2,15 +2,17 @@
   "version": 2,
   "builds": [
     {
-      "src": "api/main.py",
-      "use": "@vercel/python"
-    },
-    {
       "src": "frontend/package.json",
       "use": "@vercel/static-build",
       "config": {
-        "outputDirectory": "frontend/build"
+        "installCommand": "npm install",
+        "buildCommand": "npm run build",
+        "outputDirectory": "build"
       }
+    },
+    {
+      "src": "api/**/*.py",
+      "use": "@vercel/python"
     }
   ],
   "routes": [
@@ -20,7 +22,7 @@
     },
     {
       "src": "/(.*)",
-      "dest": "frontend/build/index.html"
+      "dest": "frontend/index.html"
     }
   ]
 } 
