@@ -255,7 +255,7 @@ function App() {
       }
 
       const data: TaskResponse = await response.json();
-
+      
       if (data && data.decision && data.explanation) {
         setTaskResponse(data); // This will trigger the useEffect
       } else {

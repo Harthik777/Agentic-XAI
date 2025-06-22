@@ -123,7 +123,7 @@ const ExplanationView: React.FC<ExplanationViewProps> = ({ response }) => {
             <Box flex={1}>
               <Typography variant="h5" component="h3" gutterBottom sx={{ fontWeight: 700, color: theme.palette.primary.main }}>
                 AI Decision
-      </Typography>
+              </Typography>
               <Chip
                 label={analysisType}
                 size="small"
@@ -152,7 +152,7 @@ const ExplanationView: React.FC<ExplanationViewProps> = ({ response }) => {
             }}
           >
             {decision}
-      </Typography>
+          </Typography>
 
           {/* Confidence Score */}
           <Box 
@@ -254,18 +254,14 @@ const ExplanationView: React.FC<ExplanationViewProps> = ({ response }) => {
                           </Stack>
                           <LinearProgress
                             variant="determinate"
-                            value={(item.value / maxFeatureValue) * 100}
+                            value={item.value * 100 / maxFeatureValue}
                             sx={{
-                              height: 8,
-                              borderRadius: 4,
-                              bgcolor: alpha(item.color, 0.1),
+                              height: 6,
+                              borderRadius: 3,
+                              bgcolor: alpha(item.color, 0.15),
                               '& .MuiLinearProgress-bar': {
-                                borderRadius: 4,
-                                background: `linear-gradient(90deg, ${item.color}, ${alpha(item.color, 0.7)})`,
-                              },
-                              transition: 'all 0.3s ease-in-out',
-                              '&:hover': {
-                                transform: 'scaleY(1.2)',
+                                bgcolor: item.color,
+                                borderRadius: 3,
                               },
                             }}
                           />
@@ -295,8 +291,8 @@ const ExplanationView: React.FC<ExplanationViewProps> = ({ response }) => {
                   <Stack direction="row" alignItems="center" spacing={2} mb={3}>
                     <Avatar
                       sx={{
-                        bgcolor: alpha(theme.palette.success.main, 0.1),
-                        color: theme.palette.success.main,
+                        bgcolor: alpha(theme.palette.secondary.main, 0.1),
+                        color: theme.palette.secondary.main,
                         width: 40,
                         height: 40,
                       }}
@@ -305,52 +301,32 @@ const ExplanationView: React.FC<ExplanationViewProps> = ({ response }) => {
                     </Avatar>
                     <Box>
                       <Typography variant="h6" component="h4" sx={{ fontWeight: 600 }}>
-                        Reasoning Process
+                        Reasoning Steps
                       </Typography>
                       <Typography variant="body2" color="text.secondary">
-                        Step-by-step decision analysis
+                        The AI's thought process from start to finish
                       </Typography>
                     </Box>
                   </Stack>
 
-                  <Stepper orientation="vertical" sx={{ mt: 2 }}>
+                  <Stepper orientation="vertical" nonLinear>
                     {reasoningSteps.map((step, index) => (
-                      <Step key={index} active={true} completed={true}>
+                      <Step key={index} active>
                         <StepLabel
-                          StepIconComponent={() => (
-                            <Avatar
-                              sx={{
-                                bgcolor: theme.palette.success.main,
-                                width: 24,
-                                height: 24,
-                                fontSize: '0.875rem',
-                                fontWeight: 600,
-                              }}
-                            >
+                          icon={
+                            <Avatar sx={{ width: 24, height: 24, bgcolor: 'primary.main', color: 'primary.contrastText', fontSize: '0.875rem' }}>
                               {index + 1}
                             </Avatar>
-                          )}
+                          }
                         >
-                          <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                          <Typography variant="body2" sx={{ fontWeight: 500 }}>
                             Step {index + 1}
                           </Typography>
                         </StepLabel>
-                        <StepContent sx={{ borderLeft: 'none', pl: 4, pb: 3 }}>
-                          <Fade in timeout={1500 + index * 300}>
-                            <Paper
-                              elevation={0}
-                              sx={{
-                                p: 2,
-                                bgcolor: alpha(theme.palette.success.main, 0.05),
-                                border: `1px solid ${alpha(theme.palette.success.main, 0.2)}`,
-                                borderRadius: 2,
-                              }}
-                            >
-                              <Typography variant="body2" sx={{ lineHeight: 1.6 }}>
-                                {step}
-                              </Typography>
-      </Paper>
-                          </Fade>
+                        <StepContent>
+                          <Typography variant="body2" color="text.secondary">
+                            {step}
+                          </Typography>
                         </StepContent>
                       </Step>
                     ))}
@@ -360,7 +336,7 @@ const ExplanationView: React.FC<ExplanationViewProps> = ({ response }) => {
                   <Box sx={{ textAlign: 'center' }}>
                     <Typography variant="caption" color="text.secondary">
                       🧠 {reasoningSteps.length} logical steps analyzed
-        </Typography>
+                    </Typography>
                   </Box>
                 </CardContent>
               </Card>
@@ -494,7 +470,7 @@ const ExplanationView: React.FC<ExplanationViewProps> = ({ response }) => {
               </Badge>
             </Tooltip>
           </Stack>
-      </Paper>
+        </Paper>
       </Fade>
     </Box>
   );
