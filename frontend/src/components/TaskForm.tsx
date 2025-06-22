@@ -1,20 +1,17 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   TextField,
   Button,
+  Paper,
   Typography,
-  Collapse,
-  Chip,
   Stack,
+  CircularProgress,
+  Chip,
   useTheme,
-  alpha,
-  Grow,
+  Collapse,
   Card,
   CardContent,
-  InputAdornment,
-  IconButton,
-  Tooltip,
   Alert
 } from '@mui/material';
 import {
@@ -23,8 +20,7 @@ import {
   AutoAwesome,
   DataObject,
   Send,
-  Refresh,
-  InfoOutlined
+  Refresh
 } from '@mui/icons-material';
 import { TaskRequest } from '../types';
 
@@ -64,7 +60,6 @@ const TaskForm: React.FC<TaskFormProps> = ({ onSubmit, loading, error }) => {
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [isValidJson, setIsValidJson] = useState(true);
   const theme = useTheme();
-  const contextInputRef = useRef<HTMLTextAreaElement>(null);
 
   const handleJsonChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const jsonString = e.target.value;
@@ -94,9 +89,6 @@ const TaskForm: React.FC<TaskFormProps> = ({ onSubmit, loading, error }) => {
     setTaskDescription(sample.task);
     setContextInput(JSON.stringify(sample.context, null, 2));
     setShowAdvanced(true);
-    setTimeout(() => {
-        contextInputRef.current?.focus();
-    }, 100);
   };
   
   const clearForm = () => {
@@ -140,7 +132,6 @@ const TaskForm: React.FC<TaskFormProps> = ({ onSubmit, loading, error }) => {
             Provide Context (as JSON)
           </Typography>
           <TextField
-            inputRef={contextInputRef}
             fullWidth
             multiline
             rows={6}
