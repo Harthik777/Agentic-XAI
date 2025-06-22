@@ -14,8 +14,8 @@ import TaskForm from './components/TaskForm';
 import ExplanationView from './components/ExplanationView';
 import { Decision, TaskRequest } from './types';
 
-// Use environment variable for API URL, fallback for development
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+// Use a relative path for production, fallback for development
+const API_URL = process.env.NODE_ENV === 'production' ? '' : 'http://localhost:8000';
 
 const theme = createTheme({
   palette: {
