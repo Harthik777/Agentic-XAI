@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Container,
   Box,
@@ -216,11 +216,20 @@ function App() {
   const [darkMode, setDarkMode] = useState(false);
   const theme = createAppTheme(darkMode);
 
+  // Effect to handle state changes after API call
+  useEffect(() => {
+    if (taskResponse) {
+      setShowResult(true);
+      setLoading(false);
+    }
+  }, [taskResponse]);
+
   const handleTaskSubmit = async (taskDescription: string, context: any) => {
     setLoading(true);
+    setTaskResponse(null); // Clear previous results
+    setShowResult(false);
     setError(null);
     setShowError(false);
-    setShowResult(false);
 
     try {
       const response = await fetch(`${API_URL}/api/task`, {
@@ -248,20 +257,15 @@ function App() {
       const data: TaskResponse = await response.json();
 
       if (data && data.decision && data.explanation) {
-        setTaskResponse(data);
-        setError(null);
-        setTimeout(() => setShowResult(true), 100);
+        setTaskResponse(data); // This will trigger the useEffect
       } else {
-        throw new Error("Invalid response format from server");
+        throw new Error('Invalid response structure from server');
       }
 
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
-      setError(errorMessage);
+    } catch (err: any) {
+      setError(err.message || 'An unexpected error occurred');
       setShowError(true);
-      setTaskResponse(null);
-    } finally {
-      setLoading(false);
+      setLoading(false); // Stop loading on error
     }
   };
 
