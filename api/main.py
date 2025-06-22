@@ -28,7 +28,7 @@ app.add_middleware(
 )
 
 # Include the task processing router
-app.include_router(tasks.router)
+app.include_router(tasks.router, prefix="/api")
 
 @app.on_event("startup")
 async def startup_event():
