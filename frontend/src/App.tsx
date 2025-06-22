@@ -14,7 +14,6 @@ import {
   CardContent,
   Chip,
   Stack,
-  useTheme,
   alpha,
   Fab,
   IconButton,
@@ -202,7 +201,7 @@ const createAppTheme = (darkMode: boolean) => createTheme({
     darkMode
       ? '0 25px 50px -12px rgba(0, 0, 0, 0.6)'
       : '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-  ] as const,
+  ],
   components: {
     MuiButton: {
       styleOverrides: {
