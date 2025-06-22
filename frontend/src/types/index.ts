@@ -1,7 +1,8 @@
 export interface Explanation {
   reasoning_steps: string[];
   feature_importance: Record<string, number>;
-  model_details: {
+  analysis_type?: string;
+  model_details?: {
     name: string;
     type: string;
   };
@@ -10,6 +11,7 @@ export interface Explanation {
 export interface TaskResponse {
   decision: string;
   explanation: Explanation;
+  confidence: number;
   success?: boolean;
 }
 

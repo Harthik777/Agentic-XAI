@@ -3,19 +3,40 @@ import {
   Box,
   Typography,
   Paper,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
-  Divider,
   Chip,
   LinearProgress,
-  Alert,
+  Grid,
   Card,
   CardContent,
+  Divider,
+  Stack,
+  useTheme,
+  alpha,
+  Grow,
+  Fade,
+  Stepper,
+  Step,
+  StepLabel,
+  StepContent,
+  Avatar,
+  Rating,
+  Tooltip,
+  Badge,
 } from '@mui/material';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import InfoIcon from '@mui/icons-material/Info';
+import {
+  CheckCircle,
+  TrendingUp,
+  Psychology,
+  Assessment,
+  Timeline,
+  LightbulbOutlined,
+  SpeedOutlined,
+  VerifiedOutlined,
+  InsightsOutlined,
+  AutoAwesome,
+  Star,
+  ThumbUp,
+} from '@mui/icons-material';
 import { TaskResponse } from '../types';
 
 interface ExplanationViewProps {
@@ -23,175 +44,458 @@ interface ExplanationViewProps {
 }
 
 const ExplanationView: React.FC<ExplanationViewProps> = ({ response }) => {
+  const theme = useTheme();
+
   if (!response) {
-    return (
-      <Alert severity="error">
-        No response data available
-      </Alert>
-    );
+    return null;
   }
 
-  const { decision, explanation, success } = response;
+  const { decision, explanation, confidence } = response;
 
-  if (!success) {
-    return (
-      <Alert severity="error">
-        <Typography variant="h6">Task Processing Failed</Typography>
-        <Typography>{decision}</Typography>
-      </Alert>
-    );
-  }
+  // Parse feature importance if available
+  const featureImportance = explanation.feature_importance || {};
+  const reasoningSteps = explanation.reasoning_steps || [];
+  const analysisType = explanation.analysis_type || 'Unknown';
 
-  if (!explanation) {
-    return (
-      <Alert severity="warning">
-        Decision received but explanation data is missing
-      </Alert>
-    );
-  }
+  // Calculate confidence color
+  const getConfidenceColor = (conf: number) => {
+    if (conf >= 80) return theme.palette.success.main;
+    if (conf >= 60) return theme.palette.warning.main;
+    return theme.palette.error.main;
+  };
 
-  const { reasoning_steps, feature_importance, model_details } = explanation;
+  // Get confidence icon
+  const getConfidenceIcon = (conf: number) => {
+    if (conf >= 80) return <VerifiedOutlined />;
+    if (conf >= 60) return <SpeedOutlined />;
+    return <Psychology />;
+  };
 
-  // Calculate max importance for scaling
-  const maxImportance = Math.max(...Object.values(feature_importance || {}));
+  // Format feature importance for visualization
+  const formatFeatureData = () => {
+    return Object.entries(featureImportance)
+      .map(([feature, importance]) => ({
+        feature: feature.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+        value: typeof importance === 'number' ? importance : 0,
+        color: `hsl(${200 + (typeof importance === 'number' ? importance : 0) * 1.2}, 70%, 50%)`,
+      }))
+      .sort((a, b) => b.value - a.value);
+  };
+
+  const featureData = formatFeatureData();
+  const maxFeatureValue = Math.max(...featureData.map(f => f.value), 1);
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-      <Typography variant="h5" component="h3" gutterBottom>
-        Agent's Analysis
-      </Typography>
+    <Box sx={{ width: '100%' }}>
+      {/* Decision Header */}
+      <Fade in timeout={500}>
+        <Paper
+          elevation={0}
+          sx={{
+            p: 4,
+            mb: 3,
+            background: `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.1)} 0%, ${alpha(theme.palette.secondary.main, 0.1)} 100%)`,
+            border: `2px solid ${alpha(theme.palette.primary.main, 0.2)}`,
+            borderRadius: 4,
+            position: 'relative',
+            overflow: 'hidden',
+            '&::before': {
+              content: '""',
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              height: 4,
+              background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+            },
+          }}
+        >
+          <Stack direction="row" alignItems="center" spacing={2} mb={2}>
+            <Avatar
+              sx={{
+                bgcolor: theme.palette.primary.main,
+                width: 48,
+                height: 48,
+              }}
+            >
+              <AutoAwesome />
+            </Avatar>
+            <Box flex={1}>
+              <Typography variant="h5" component="h3" gutterBottom sx={{ fontWeight: 700, color: theme.palette.primary.main }}>
+                AI Decision
+              </Typography>
+              <Chip
+                label={analysisType}
+                size="small"
+                sx={{
+                  bgcolor: alpha(theme.palette.primary.main, 0.1),
+                  color: theme.palette.primary.main,
+                  fontWeight: 600,
+                  textTransform: 'capitalize',
+                }}
+              />
+            </Box>
+          </Stack>
 
-      {/* Decision Section */}
-      <Card elevation={2} sx={{ bgcolor: 'primary.main', color: 'primary.contrastText' }}>
-        <CardContent>
-          <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <CheckCircleIcon />
-            Decision
-          </Typography>
-          <Typography variant="body1" sx={{ fontSize: '1.1rem', lineHeight: 1.5 }}>
+          <Typography
+            variant="h6"
+            component="div"
+            sx={{
+              background: `linear-gradient(135deg, ${theme.palette.text.primary}, ${theme.palette.primary.main})`,
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+              fontWeight: 600,
+              fontSize: '1.375rem',
+              lineHeight: 1.4,
+              mb: 2,
+            }}
+          >
             {decision}
           </Typography>
-        </CardContent>
-      </Card>
 
-      {/* Reasoning Steps */}
-      <Paper elevation={2} sx={{ p: 3 }}>
-        <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <InfoIcon color="primary" />
-          Reasoning Process
-        </Typography>
-        
-        {reasoning_steps && reasoning_steps.length > 0 ? (
-          <List dense>
-            {reasoning_steps.map((step, index) => (
-              <React.Fragment key={index}>
-                <ListItem sx={{ pl: 0 }}>
-                  <ListItemIcon sx={{ minWidth: 36 }}>
-                    <Box
+          {/* Confidence Score */}
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 2,
+              p: 2,
+              bgcolor: alpha(getConfidenceColor(confidence), 0.1),
+              borderRadius: 3,
+              border: `1px solid ${alpha(getConfidenceColor(confidence), 0.3)}`,
+            }}
+          >
+            <Box sx={{ color: getConfidenceColor(confidence) }}>
+              {getConfidenceIcon(confidence)}
+            </Box>
+            <Box flex={1}>
+              <Typography variant="body2" color="text.secondary" gutterBottom>
+                Confidence Score
+              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <LinearProgress
+                  variant="determinate"
+                  value={confidence}
+                  sx={{
+                    flex: 1,
+                    height: 8,
+                    borderRadius: 4,
+                    bgcolor: alpha(getConfidenceColor(confidence), 0.2),
+                    '& .MuiLinearProgress-bar': {
+                      borderRadius: 4,
+                      bgcolor: getConfidenceColor(confidence),
+                    },
+                  }}
+                />
+                <Typography variant="h6" sx={{ color: getConfidenceColor(confidence), fontWeight: 700, minWidth: 60 }}>
+                  {confidence.toFixed(1)}%
+                </Typography>
+              </Box>
+            </Box>
+            <Rating
+              value={confidence / 20}
+              precision={0.1}
+              readOnly
+              size="small"
+              icon={<Star fontSize="inherit" />}
+              emptyIcon={<Star fontSize="inherit" />}
+            />
+          </Box>
+        </Paper>
+      </Fade>
+
+      <Grid container spacing={3}>
+        {/* Feature Importance Analysis */}
+        {featureData.length > 0 && (
+          <Grid item xs={12} lg={6}>
+            <Grow in timeout={800}>
+              <Card sx={{ height: '100%', borderRadius: 4 }}>
+                <CardContent sx={{ p: 3 }}>
+                  <Stack direction="row" alignItems="center" spacing={2} mb={3}>
+                    <Avatar
                       sx={{
-                        width: 24,
-                        height: 24,
-                        borderRadius: '50%',
-                        bgcolor: 'primary.main',
-                        color: 'primary.contrastText',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '0.8rem',
-                        fontWeight: 'bold'
+                        bgcolor: alpha(theme.palette.info.main, 0.1),
+                        color: theme.palette.info.main,
+                        width: 40,
+                        height: 40,
                       }}
                     >
-                      {index + 1}
+                      <Assessment />
+                    </Avatar>
+                    <Box>
+                      <Typography variant="h6" component="h4" sx={{ fontWeight: 600 }}>
+                        Feature Importance
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Key factors influencing this decision
+                      </Typography>
                     </Box>
-                  </ListItemIcon>
-                  <ListItemText 
-                    primary={step}
-                    primaryTypographyProps={{
-                      sx: { fontSize: '0.95rem', lineHeight: 1.4 }
-                    }}
-                  />
-                </ListItem>
-                {index < reasoning_steps.length - 1 && (
-                  <Divider variant="inset" component="li" sx={{ ml: 4 }} />
-                )}
-              </React.Fragment>
-            ))}
-          </List>
-        ) : (
-          <Typography color="text.secondary">
-            No reasoning steps provided
-          </Typography>
-        )}
-      </Paper>
+                  </Stack>
 
-      {/* Feature Importance */}
-      <Paper elevation={2} sx={{ p: 3 }}>
-        <Typography variant="h6" gutterBottom>
-          Feature Importance Analysis
-        </Typography>
-        
-        {feature_importance && Object.keys(feature_importance).length > 0 ? (
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            {Object.entries(feature_importance)
-              .sort(([, a], [, b]) => b - a) // Sort by importance
-              .map(([feature, importance]) => (
-                <Box key={feature}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-                    <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                      {feature.replace(/_/g, ' ')}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {(importance * 100).toFixed(1)}%
+                  <Box sx={{ maxHeight: 400, overflow: 'auto' }}>
+                    {featureData.map((item, index) => (
+                      <Fade in timeout={1000 + index * 200} key={item.feature}>
+                        <Box sx={{ mb: 3 }}>
+                          <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1}>
+                            <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                              {item.feature}
+                            </Typography>
+                            <Chip
+                              label={`${item.value.toFixed(1)}%`}
+                              size="small"
+                              sx={{
+                                bgcolor: alpha(item.color, 0.1),
+                                color: item.color,
+                                fontWeight: 600,
+                                minWidth: 60,
+                              }}
+                            />
+                          </Stack>
+                          <LinearProgress
+                            variant="determinate"
+                            value={(item.value / maxFeatureValue) * 100}
+                            sx={{
+                              height: 8,
+                              borderRadius: 4,
+                              bgcolor: alpha(item.color, 0.1),
+                              '& .MuiLinearProgress-bar': {
+                                borderRadius: 4,
+                                background: `linear-gradient(90deg, ${item.color}, ${alpha(item.color, 0.7)})`,
+                              },
+                              transition: 'all 0.3s ease-in-out',
+                              '&:hover': {
+                                transform: 'scaleY(1.2)',
+                              },
+                            }}
+                          />
+                        </Box>
+                      </Fade>
+                    ))}
+                  </Box>
+
+                  <Divider sx={{ my: 2 }} />
+                  <Box sx={{ textAlign: 'center' }}>
+                    <Typography variant="caption" color="text.secondary">
+                      📊 Analysis based on {featureData.length} key parameters
                     </Typography>
                   </Box>
-                  <LinearProgress
-                    variant="determinate"
-                    value={(importance / maxImportance) * 100}
-                    sx={{
-                      height: 8,
-                      borderRadius: 4,
-                      bgcolor: 'grey.200',
-                      '& .MuiLinearProgress-bar': {
-                        borderRadius: 4,
-                        bgcolor: importance > 0.5 ? 'success.main' : 
-                                importance > 0.3 ? 'warning.main' : 'info.main'
-                      }
-                    }}
-                  />
-                </Box>
-              ))}
-          </Box>
-        ) : (
-          <Typography color="text.secondary">
-            No feature importance data available
-          </Typography>
+                </CardContent>
+              </Card>
+            </Grow>
+          </Grid>
         )}
-      </Paper>
 
-      {/* Model Details */}
-      <Paper elevation={1} sx={{ p: 3, bgcolor: 'grey.50' }}>
-        <Typography variant="h6" gutterBottom>
-          Model Information
-        </Typography>
-        {model_details ? (
-          <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-            <Chip 
-              label={`Name: ${model_details.name}`} 
-              variant="outlined" 
-              size="small"
-            />
-            <Chip 
-              label={`Type: ${model_details.type}`} 
-              variant="outlined" 
-              size="small"
-            />
-          </Box>
-        ) : (
-          <Typography color="text.secondary">
-            No model details available
-          </Typography>
+        {/* Reasoning Steps */}
+        {reasoningSteps.length > 0 && (
+          <Grid item xs={12} lg={featureData.length > 0 ? 6 : 12}>
+            <Grow in timeout={1200}>
+              <Card sx={{ height: '100%', borderRadius: 4 }}>
+                <CardContent sx={{ p: 3 }}>
+                  <Stack direction="row" alignItems="center" spacing={2} mb={3}>
+                    <Avatar
+                      sx={{
+                        bgcolor: alpha(theme.palette.success.main, 0.1),
+                        color: theme.palette.success.main,
+                        width: 40,
+                        height: 40,
+                      }}
+                    >
+                      <Timeline />
+                    </Avatar>
+                    <Box>
+                      <Typography variant="h6" component="h4" sx={{ fontWeight: 600 }}>
+                        Reasoning Process
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Step-by-step decision analysis
+                      </Typography>
+                    </Box>
+                  </Stack>
+
+                  <Stepper orientation="vertical" sx={{ mt: 2 }}>
+                    {reasoningSteps.map((step, index) => (
+                      <Step key={index} active={true} completed={true}>
+                        <StepLabel
+                          StepIconComponent={() => (
+                            <Avatar
+                              sx={{
+                                bgcolor: theme.palette.success.main,
+                                width: 24,
+                                height: 24,
+                                fontSize: '0.875rem',
+                                fontWeight: 600,
+                              }}
+                            >
+                              {index + 1}
+                            </Avatar>
+                          )}
+                        >
+                          <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                            Step {index + 1}
+                          </Typography>
+                        </StepLabel>
+                        <StepContent sx={{ borderLeft: 'none', pl: 4, pb: 3 }}>
+                          <Fade in timeout={1500 + index * 300}>
+                            <Paper
+                              elevation={0}
+                              sx={{
+                                p: 2,
+                                bgcolor: alpha(theme.palette.success.main, 0.05),
+                                border: `1px solid ${alpha(theme.palette.success.main, 0.2)}`,
+                                borderRadius: 2,
+                              }}
+                            >
+                              <Typography variant="body2" sx={{ lineHeight: 1.6 }}>
+                                {step}
+                              </Typography>
+                            </Paper>
+                          </Fade>
+                        </StepContent>
+                      </Step>
+                    ))}
+                  </Stepper>
+
+                  <Divider sx={{ my: 2 }} />
+                  <Box sx={{ textAlign: 'center' }}>
+                    <Typography variant="caption" color="text.secondary">
+                      🧠 {reasoningSteps.length} logical steps analyzed
+                    </Typography>
+                  </Box>
+                </CardContent>
+              </Card>
+            </Grow>
+          </Grid>
         )}
-      </Paper>
+      </Grid>
+
+      {/* Additional Insights */}
+      <Fade in timeout={1600}>
+        <Box sx={{ mt: 3 }}>
+          <Grid container spacing={2}>
+            <Grid item xs={12} sm={6} md={3}>
+              <Card
+                sx={{
+                  p: 2,
+                  textAlign: 'center',
+                  borderRadius: 3,
+                  transition: 'all 0.3s ease-in-out',
+                  '&:hover': {
+                    transform: 'translateY(-4px)',
+                    boxShadow: theme.shadows[8],
+                  },
+                }}
+              >
+                <TrendingUp sx={{ fontSize: 32, color: theme.palette.primary.main, mb: 1 }} />
+                <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                  {featureData.length}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Parameters Analyzed
+                </Typography>
+              </Card>
+            </Grid>
+
+            <Grid item xs={12} sm={6} md={3}>
+              <Card
+                sx={{
+                  p: 2,
+                  textAlign: 'center',
+                  borderRadius: 3,
+                  transition: 'all 0.3s ease-in-out',
+                  '&:hover': {
+                    transform: 'translateY(-4px)',
+                    boxShadow: theme.shadows[8],
+                  },
+                }}
+              >
+                <Psychology sx={{ fontSize: 32, color: theme.palette.secondary.main, mb: 1 }} />
+                <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                  {reasoningSteps.length}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Reasoning Steps
+                </Typography>
+              </Card>
+            </Grid>
+
+            <Grid item xs={12} sm={6} md={3}>
+              <Card
+                sx={{
+                  p: 2,
+                  textAlign: 'center',
+                  borderRadius: 3,
+                  transition: 'all 0.3s ease-in-out',
+                  '&:hover': {
+                    transform: 'translateY(-4px)',
+                    boxShadow: theme.shadows[8],
+                  },
+                }}
+              >
+                <InsightsOutlined sx={{ fontSize: 32, color: theme.palette.success.main, mb: 1 }} />
+                <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                  {confidence.toFixed(0)}%
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Confidence Level
+                </Typography>
+              </Card>
+            </Grid>
+
+            <Grid item xs={12} sm={6} md={3}>
+              <Card
+                sx={{
+                  p: 2,
+                  textAlign: 'center',
+                  borderRadius: 3,
+                  transition: 'all 0.3s ease-in-out',
+                  '&:hover': {
+                    transform: 'translateY(-4px)',
+                    boxShadow: theme.shadows[8],
+                  },
+                }}
+              >
+                <LightbulbOutlined sx={{ fontSize: 32, color: theme.palette.warning.main, mb: 1 }} />
+                <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                  XAI
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Analysis Type
+                </Typography>
+              </Card>
+            </Grid>
+          </Grid>
+        </Box>
+      </Fade>
+
+      {/* Bottom Action Bar */}
+      <Fade in timeout={2000}>
+        <Paper
+          elevation={0}
+          sx={{
+            mt: 3,
+            p: 2,
+            bgcolor: alpha(theme.palette.info.main, 0.05),
+            border: `1px solid ${alpha(theme.palette.info.main, 0.2)}`,
+            borderRadius: 3,
+            textAlign: 'center',
+          }}
+        >
+          <Stack direction="row" spacing={2} justifyContent="center" alignItems="center">
+            <Tooltip title="Analysis Complete">
+              <CheckCircle sx={{ color: theme.palette.success.main }} />
+            </Tooltip>
+            <Typography variant="body2" color="text.secondary">
+              Analysis complete • Transparent AI decision making • Ready for action
+            </Typography>
+            <Tooltip title="Explainable AI">
+              <Badge badgeContent="XAI" color="primary">
+                <ThumbUp sx={{ color: theme.palette.primary.main }} />
+              </Badge>
+            </Tooltip>
+          </Stack>
+        </Paper>
+      </Fade>
     </Box>
   );
 };
