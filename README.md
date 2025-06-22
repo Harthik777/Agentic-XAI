@@ -262,4 +262,4 @@ MIT License - see LICENSE file for details
 
 ---
 
-Built with ❤️ using FastAPI, React, and modern development practices.
+Made with ❤️ by Harthik

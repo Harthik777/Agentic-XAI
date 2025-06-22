@@ -39,16 +39,20 @@ class IntelligentAgent:
             # Generate decision using free AI
             decision = await self._generate_free_ai_decision(task_description, context)
             
-            # Generate XAI explanation
-            explanation = self.explainer.generate_explanation(
+            # Generate XAI explanation, which now includes confidence and analysis_type
+            explanation_data = self.explainer.generate_explanation(
                 decision=decision,
                 task_description=task_description,
                 context=context
             )
+
+            # Separate confidence from the rest of the explanation
+            confidence = explanation_data.pop("confidence", 0.0)
             
             return {
                 "decision": decision,
-                "explanation": explanation,
+                "explanation": explanation_data, # The rest of the data is the explanation
+                "confidence": confidence,
                 "success": True
             }
             
@@ -108,15 +112,19 @@ class IntelligentAgent:
         """
         decision = await self._generate_intelligent_mock_decision(task_description, context)
         
-        explanation = self.explainer.generate_explanation(
+        explanation_data = self.explainer.generate_explanation(
             decision=decision,
             task_description=task_description,
             context=context
         )
-        
+
+        # Separate confidence from the rest of the explanation
+        confidence = explanation_data.pop("confidence", 0.0)
+
         return {
             "decision": decision,
-            "explanation": explanation,
+            "explanation": explanation_data,
+            "confidence": confidence,
             "success": True
         }
     

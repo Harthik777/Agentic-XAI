@@ -33,6 +33,9 @@ class XAIExplainer:
                 decision, task_description, context, task_analysis
             )
             
+            # Estimate confidence
+            confidence = self._estimate_confidence(task_description, context, decision)
+            
             # Model details
             model_details = {
                 "name": "Intelligent Agent with XAI",
@@ -42,7 +45,9 @@ class XAIExplainer:
             return {
                 "reasoning_steps": reasoning_steps,
                 "feature_importance": feature_importance,
-                "model_details": model_details
+                "model_details": model_details,
+                "confidence": confidence,
+                "analysis_type": "Rule-Based Heuristics"
             }
             
         except Exception as e:
@@ -220,7 +225,9 @@ class XAIExplainer:
             "model_details": {
                 "name": "Error Handler",
                 "type": "Exception Management System"
-            }
+            },
+            "confidence": 0.0,
+            "analysis_type": "Error Analysis"
         }
 
  

@@ -44,10 +44,12 @@ class ExplanationResponse(BaseModel):
     reasoning_steps: List[str]
     feature_importance: Dict[str, float]
     model_details: Dict[str, str]
+    analysis_type: str
 
 class TaskResponse(BaseModel):
     decision: str
     explanation: ExplanationResponse
+    confidence: float
     success: bool = True
     
 @app.get("/")
