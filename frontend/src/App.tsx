@@ -43,7 +43,7 @@ function App() {
     setResponse(null);
 
     try {
-      const res = await fetch(`${API_URL}/api/task`, {
+      const res = await fetch(`${API_URL}/api/tasks/process_task`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(request),

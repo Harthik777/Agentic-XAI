@@ -8,7 +8,6 @@ import {
   Stack,
   CircularProgress,
   Chip,
-  useTheme,
   Collapse,
   Card,
   CardContent,
@@ -59,7 +58,6 @@ const TaskForm: React.FC<TaskFormProps> = ({ onSubmit, loading, error }) => {
   const [contextInput, setContextInput] = useState('');
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [isValidJson, setIsValidJson] = useState(true);
-  const theme = useTheme();
 
   const handleJsonChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const jsonString = e.target.value;
