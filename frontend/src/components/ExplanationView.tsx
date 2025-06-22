@@ -123,7 +123,7 @@ const ExplanationView: React.FC<ExplanationViewProps> = ({ response }) => {
             <Box flex={1}>
               <Typography variant="h5" component="h3" gutterBottom sx={{ fontWeight: 700, color: theme.palette.primary.main }}>
                 AI Decision
-              </Typography>
+      </Typography>
               <Chip
                 label={analysisType}
                 size="small"
@@ -152,12 +152,12 @@ const ExplanationView: React.FC<ExplanationViewProps> = ({ response }) => {
             }}
           >
             {decision}
-          </Typography>
+      </Typography>
 
           {/* Confidence Score */}
-          <Box
-            sx={{
-              display: 'flex',
+          <Box 
+            sx={{ 
+              display: 'flex', 
               alignItems: 'center',
               gap: 2,
               p: 2,
@@ -349,7 +349,7 @@ const ExplanationView: React.FC<ExplanationViewProps> = ({ response }) => {
                               <Typography variant="body2" sx={{ lineHeight: 1.6 }}>
                                 {step}
                               </Typography>
-                            </Paper>
+      </Paper>
                           </Fade>
                         </StepContent>
                       </Step>
@@ -360,7 +360,7 @@ const ExplanationView: React.FC<ExplanationViewProps> = ({ response }) => {
                   <Box sx={{ textAlign: 'center' }}>
                     <Typography variant="caption" color="text.secondary">
                       🧠 {reasoningSteps.length} logical steps analyzed
-                    </Typography>
+        </Typography>
                   </Box>
                 </CardContent>
               </Card>
@@ -494,7 +494,7 @@ const ExplanationView: React.FC<ExplanationViewProps> = ({ response }) => {
               </Badge>
             </Tooltip>
           </Stack>
-        </Paper>
+      </Paper>
       </Fade>
     </Box>
   );
