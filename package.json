@@ -1,9 +1,10 @@
 {
   "name": "agentic-xai",
   "version": "2.0.0",
+  "private": true,
   "scripts": {
-    "build": "node build.js",
-    "dev": "cd frontend && npm start"
+    "start-frontend": "cd frontend && npm start",
+    "start-backend": "cd backend && uvicorn app.main:app --reload"
   },
   "devDependencies": {
     "fs-extra": "^11.3.0"

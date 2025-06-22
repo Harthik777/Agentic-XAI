@@ -72,7 +72,7 @@ async def health_check():
     return {
         "status": "healthy",
         "agent_status": agent_status,
-        "api_token_configured": bool(os.getenv("REPLICATE_API_TOKEN"))
+        "api_token_configured": bool(os.getenv("HUGGING_FACE_TOKEN"))
     }
 
 @app.post("/api/task", response_model=TaskResponse)
