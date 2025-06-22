@@ -6,13 +6,18 @@
     "dev": "cd frontend && npm start"
   },
   "devDependencies": {
-    "fs-extra": "^11.2.0"
+    "fs-extra": "^11.3.0"
   },
   "engines": {
     "node": ">=18.0.0"
   },
   "description": "Agentic-XAI: Intelligent Agent with Explainable AI",
-  "keywords": ["ai", "xai", "agent", "explainable-ai"],
+  "keywords": [
+    "ai",
+    "xai",
+    "agent",
+    "explainable-ai"
+  ],
   "author": "",
   "license": "MIT"
-} 
+}
