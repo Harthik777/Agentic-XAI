@@ -22,7 +22,7 @@
   ],
   "routes": [
     {
-      "src": "/api/(.*)",
+      "src": "/api/tasks/process_task",
       "dest": "api/main.py"
     },
     {
