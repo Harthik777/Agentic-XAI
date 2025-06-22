@@ -2,6 +2,11 @@
   "version": 2,
   "builds": [
     {
+      "src": "api/main.py",
+      "use": "@vercel/python",
+      "config": { "maxLambdaSize": "15mb" }
+    },
+    {
       "src": "frontend/package.json",
       "use": "@vercel/static-build",
       "config": {
@@ -18,7 +23,11 @@
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "backend/app/main.py"
+      "dest": "api/main.py"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "frontend/build/$1"
     },
     {
       "src": "/static/(.*)",
@@ -39,10 +48,6 @@
     {
       "src": "/manifest.json",
       "dest": "/frontend/build/manifest.json"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/frontend/build/index.html"
     }
   ]
 } 
