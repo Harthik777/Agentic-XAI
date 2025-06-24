@@ -20,22 +20,24 @@ if errorlevel 1 (
 )
 
 echo Setting up backend...
-cd backend
+cd api
 
 :: Create virtual environment if it doesn't exist
-if not exist "venv" (
+if not exist "..\venv" (
     echo Creating virtual environment...
+    cd ..
     python -m venv venv
+    cd api
 )
 
 :: Activate virtual environment and install dependencies
 echo Installing Python dependencies...
-call venv\Scripts\activate.bat
+call ..\venv\Scripts\activate.bat
 pip install -r requirements.txt
 
 :: Start backend server in a new window
 echo Starting backend server...
-start "Backend Server" cmd /k "venv\Scripts\activate.bat && python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000"
+start "Backend Server" cmd /k "..\venv\Scripts\activate.bat && python -m uvicorn main:app --reload --host 0.0.0.0 --port 8000"
 
 :: Go back to root and setup frontend
 cd ..

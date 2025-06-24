@@ -15,22 +15,24 @@ if (-not (Get-Command node -ErrorAction SilentlyContinue)) {
 }
 
 Write-Host "Setting up backend..." -ForegroundColor Yellow
-Set-Location backend
+Set-Location api
 
 # Install Python dependencies
-if (-not (Test-Path "venv")) {
+if (-not (Test-Path "..\venv")) {
     Write-Host "Creating virtual environment..." -ForegroundColor Yellow
+    Set-Location ..
     python -m venv venv
+    Set-Location api
 }
 
 Write-Host "Activating virtual environment..." -ForegroundColor Yellow
-& .\venv\Scripts\Activate.ps1
+& ..\venv\Scripts\Activate.ps1
 
 Write-Host "Installing Python dependencies..." -ForegroundColor Yellow
 pip install -r requirements.txt
 
 Write-Host "Starting backend server..." -ForegroundColor Yellow
-Start-Process powershell -ArgumentList "-Command", "cd '$PWD'; .\venv\Scripts\Activate.ps1; python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000"
+Start-Process powershell -ArgumentList "-Command", "cd '$PWD'; ..\venv\Scripts\Activate.ps1; python -m uvicorn main:app --reload --host 0.0.0.0 --port 8000"
 
 # Go back to root and setup frontend
 Set-Location ..
