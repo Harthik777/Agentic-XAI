@@ -4,7 +4,9 @@
   "private": true,
   "scripts": {
     "start-frontend": "cd frontend && npm start",
-    "start-backend": "cd api && uvicorn main:app --reload"
+    "start-backend": "cd api && uvicorn main:app --reload",
+    "build": "cd frontend && npm install && npm run build",
+    "vercel-build": "cd frontend && npm install && npm run build"
   },
   "devDependencies": {
     "fs-extra": "^11.3.0"
