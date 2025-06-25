@@ -1,0 +1,5 @@
+# Vercel Deployment Trigger
+# This file forces a new deployment
+# Timestamp: 2025-06-25T14:45:00Z
+# Force deployment with cleaned up codebase
+DEPLOYMENT_TRIGGER=true 
