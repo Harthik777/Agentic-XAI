@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import {
   Container,
   Box,
@@ -8,11 +8,16 @@ import {
   Fade,
   CssBaseline,
   ThemeProvider,
-  createTheme
+  createTheme,
+  Alert,
+  Divider
 } from '@mui/material';
 import TaskForm from './components/TaskForm';
 import ExplanationView from './components/ExplanationView';
-import { Decision, TaskRequest } from './types';
+import ConfidenceMeter from './components/ConfidenceMeter';
+import DecisionHistory from './components/DecisionHistory';
+import AnalyticsDashboard from './components/AnalyticsDashboard';
+import { TaskResponse } from './types';
 
 // Determine the base URL for the backend API.
 // 1. If the user has explicitly set REACT_APP_API_BASE, always honour it.
@@ -27,12 +32,12 @@ const API_BASE =
 
 const theme = createTheme({
   palette: {
-    mode: 'dark',
-    primary: { main: '#7e57c2' },
-    secondary: { main: '#03a9f4' },
-    background: {
-      default: '#121212',
-      paper: '#1e1e1e',
+    mode: 'light',
+    primary: {
+      main: '#1976d2',
+    },
+    secondary: {
+      main: '#dc004e',
     },
   },
   typography: {
@@ -41,46 +46,38 @@ const theme = createTheme({
 });
 
 function App() {
+  const [response, setResponse] = useState<TaskResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [response, setResponse] = useState<Decision | null>(null);
+  const [history, setHistory] = useState<TaskResponse[]>([]);
 
-  const handleTaskSubmit = async (request: TaskRequest) => {
+  const handleTaskSubmit = async (task: string, context: string, priority: string) => {
     setLoading(true);
     setError(null);
-    setResponse(null);
-
+    
     try {
-      const res = await fetch(`${API_BASE}/task`, {
+      const response = await fetch(`${API_BASE}/task`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(request),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          task,
+          context,
+          priority
+        }),
       });
 
-      if (!res.ok) {
-        let errorMessage = `HTTP error! status: ${res.status}`;
-        try {
-          // First try to get the response as text
-          const responseText = await res.text();
-          // Then try to parse it as JSON
-          const errorData = JSON.parse(responseText);
-          errorMessage = errorData.detail || errorMessage;
-        } catch {
-          // If response is not JSON (e.g., HTML error page), provide a helpful message
-          if (res.status >= 500) {
-            errorMessage = 'Server error occurred. Please check your environment variables and API deployment.';
-          } else if (res.status === 404) {
-            errorMessage = 'API endpoint not found. Please check your deployment configuration.';
-          }
-        }
-        throw new Error(errorMessage);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const data: Decision = await res.json();
+      const data: TaskResponse = await response.json();
       setResponse(data);
-
-    } catch (e: any) {
-      setError(e.message || 'An unknown error occurred.');
+      setHistory(prev => [data, ...prev.slice(0, 9)]); // Keep last 10 decisions
+    } catch (err) {
+      console.error('Error:', err);
+      setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setLoading(false);
     }
@@ -90,30 +87,75 @@ function App() {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Container maxWidth="lg" sx={{ py: 4 }}>
-        <Paper sx={{ p: 4, mb: 4, textAlign: 'center' }}>
-          <Typography variant="h2" component="h1" gutterBottom sx={{ fontWeight: 'bold' }}>
-            Agentic-XAI
+        <Box sx={{ textAlign: 'center', mb: 4 }}>
+          <Typography variant="h3" component="h1" gutterBottom sx={{ fontWeight: 'bold' }}>
+            🚀 Agentic XAI
           </Typography>
-          <Typography variant="h6" color="text.secondary">
-            Your personal AI decision-making assistant with built-in explainability.
+          <Typography variant="h5" color="text.secondary" gutterBottom>
+            AI-Powered Decision Making with Explainable Intelligence
           </Typography>
-        </Paper>
+          <Typography variant="body1" color="text.secondary" sx={{ maxWidth: 800, mx: 'auto' }}>
+            Get intelligent recommendations for any business decision using the latest free AI models. 
+            Our system provides detailed analysis, confidence scores, alternatives, and risk assessment.
+          </Typography>
+        </Box>
 
-        <TaskForm onSubmit={handleTaskSubmit} loading={loading} error={error} />
+        <Alert severity="info" sx={{ mb: 3 }}>
+          <Typography variant="body2">
+            <strong>🆓 Completely Free AI Service:</strong> This system uses the best free AI APIs available including 
+            OpenRouter (DeepSeek R1), Groq (Llama 3.3), and Together AI. No API keys required for basic usage!
+            For enhanced performance, you can optionally add your own free API keys as environment variables.
+          </Typography>
+        </Alert>
 
-        {loading && (
-          <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
-            <CircularProgress />
-          </Box>
+        <TaskForm 
+          onSubmit={handleTaskSubmit} 
+          loading={loading}
+        />
+
+        {error && (
+          <Alert severity="error" sx={{ mb: 3 }}>
+            {error}
+          </Alert>
         )}
 
         {response && (
-          <Fade in={true} timeout={500}>
-            <div>
-              <ExplanationView response={response} />
-            </div>
-          </Fade>
+          <>
+            <Divider sx={{ my: 4 }} />
+            
+            <Box sx={{ mb: 4 }}>
+              <ConfidenceMeter confidence={response.confidence} />
+            </Box>
+
+            <ExplanationView response={response} />
+
+            {history.length > 0 && (
+              <>
+                <Divider sx={{ my: 4 }} />
+                <DecisionHistory decisions={history} />
+              </>
+            )}
+
+            <Divider sx={{ my: 4 }} />
+            <AnalyticsDashboard decisions={history} />
+          </>
         )}
+
+        <Box sx={{ mt: 6, p: 3, bgcolor: 'background.paper', borderRadius: 2 }}>
+          <Typography variant="h6" gutterBottom>
+            💡 About This System
+          </Typography>
+          <Typography variant="body2" color="text.secondary" paragraph>
+            Agentic XAI combines multiple state-of-the-art AI models to provide sophisticated decision support 
+            for any industry or domain. The system analyzes your situation, provides recommendations with detailed 
+            reasoning, suggests alternatives, and identifies potential risks.
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            <strong>Technology Stack:</strong> React TypeScript frontend, FastAPI Python backend, 
+            integrated with free tier APIs from OpenRouter (DeepSeek R1), Groq (Llama 3.3), Together AI, 
+            and advanced fallback logic for 100% reliability.
+          </Typography>
+        </Box>
       </Container>
     </ThemeProvider>
   );

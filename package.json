@@ -3,8 +3,9 @@
   "version": "2.0.0",
   "private": true,
   "scripts": {
+    "start": "echo 'Use npm run start-frontend and npm run start-backend in separate terminals'",
     "start-frontend": "cd frontend && npm start",
-    "start-backend": "cd api && uvicorn main:app --reload",
+    "start-backend": "cd api && uvicorn main:app --reload --host 0.0.0.0 --port 8000",
     "build": "cd frontend && npm ci && npm run build",
     "vercel-build": "cd frontend && npm ci && npm run build"
   },

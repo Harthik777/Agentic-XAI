@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useMemo } from 'react';
 import {
   Paper,
   Typography,
@@ -8,26 +8,45 @@ import {
   LinearProgress,
   Box
 } from '@mui/material';
+import { TaskResponse } from '../types';
 
-interface AnalyticsData {
-  totalDecisions: number;
-  avgConfidence: number;
-  topDecisionTypes: { type: string; count: number }[];
-  avgResponseTime: number;
+interface AnalyticsDashboardProps {
+  decisions: TaskResponse[];
 }
 
-const AnalyticsDashboard: React.FC = () => {
-  const [analytics, setAnalytics] = useState<AnalyticsData>({
-    totalDecisions: 127,
-    avgConfidence: 0.82,
-    topDecisionTypes: [
-      { type: 'Career Decisions', count: 45 },
-      { type: 'Technical Choices', count: 32 },
-      { type: 'Business Strategy', count: 28 },
-      { type: 'Personal Finance', count: 22 }
-    ],
-    avgResponseTime: 2.1
-  });
+const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ decisions }) => {
+  const analytics = useMemo(() => {
+    if (decisions.length === 0) {
+      return {
+        totalDecisions: 0,
+        avgConfidence: 0,
+        topRiskFactors: [],
+        successRate: 0
+      };
+    }
+
+    const avgConfidence = decisions.reduce((sum, d) => sum + d.confidence, 0) / decisions.length;
+    
+    // Count risk factors
+    const riskFactorCounts: { [key: string]: number } = {};
+    decisions.forEach(d => {
+      d.risk_factors.forEach(risk => {
+        riskFactorCounts[risk] = (riskFactorCounts[risk] || 0) + 1;
+      });
+    });
+
+    const topRiskFactors = Object.entries(riskFactorCounts)
+      .sort(([,a], [,b]) => b - a)
+      .slice(0, 5)
+      .map(([risk, count]) => ({ type: risk, count }));
+
+    return {
+      totalDecisions: decisions.length,
+      avgConfidence,
+      topRiskFactors,
+      successRate: (decisions.filter(d => d.confidence > 70).length / decisions.length) * 100
+    };
+  }, [decisions]);
 
   return (
     <Paper sx={{ p: 3, mb: 4 }}>
@@ -56,11 +75,11 @@ const AnalyticsDashboard: React.FC = () => {
                 Avg Confidence
               </Typography>
               <Typography variant="h4">
-                {(analytics.avgConfidence * 100).toFixed(1)}%
+                {analytics.avgConfidence.toFixed(1)}%
               </Typography>
               <LinearProgress 
                 variant="determinate" 
-                value={analytics.avgConfidence * 100} 
+                value={analytics.avgConfidence} 
                 sx={{ mt: 1 }}
               />
             </CardContent>
@@ -71,10 +90,10 @@ const AnalyticsDashboard: React.FC = () => {
           <Card>
             <CardContent>
               <Typography color="textSecondary" gutterBottom>
-                Avg Response Time
+                High Confidence Rate
               </Typography>
               <Typography variant="h4">
-                {analytics.avgResponseTime}s
+                {analytics.successRate.toFixed(1)}%
               </Typography>
             </CardContent>
           </Card>
@@ -84,37 +103,43 @@ const AnalyticsDashboard: React.FC = () => {
           <Card>
             <CardContent>
               <Typography color="textSecondary" gutterBottom>
-                Success Rate
+                AI Models Used
               </Typography>
               <Typography variant="h4">
-                98.9%
+                3+
+              </Typography>
+              <Typography variant="body2" color="textSecondary">
+                Free AI APIs
               </Typography>
             </CardContent>
           </Card>
         </Grid>
         
-        <Grid item xs={12}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                Top Decision Categories
-              </Typography>
-              {analytics.topDecisionTypes.map((type, index) => (
-                <Box key={index} sx={{ mb: 2 }}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <Typography variant="body2">{type.type}</Typography>
-                    <Typography variant="body2">{type.count} decisions</Typography>
+        {analytics.topRiskFactors.length > 0 && (
+          <Grid item xs={12}>
+            <Card>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>
+                  Most Common Risk Factors
+                </Typography>
+                {analytics.topRiskFactors.map((riskFactor, index) => (
+                  <Box key={index} sx={{ mb: 2 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <Typography variant="body2">{riskFactor.type}</Typography>
+                      <Typography variant="body2">{riskFactor.count} mentions</Typography>
+                    </Box>
+                    <LinearProgress 
+                      variant="determinate" 
+                      value={(riskFactor.count / analytics.totalDecisions) * 100}
+                      sx={{ mt: 0.5 }}
+                      color="error"
+                    />
                   </Box>
-                  <LinearProgress 
-                    variant="determinate" 
-                    value={(type.count / analytics.totalDecisions) * 100}
-                    sx={{ mt: 0.5 }}
-                  />
-                </Box>
-              ))}
-            </CardContent>
-          </Card>
-        </Grid>
+                ))}
+              </CardContent>
+            </Card>
+          </Grid>
+        )}
       </Grid>
     </Paper>
   );

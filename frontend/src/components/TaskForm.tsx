@@ -9,7 +9,13 @@ import {
   Collapse,
   Card,
   CardContent,
-  Alert
+  Alert,
+  Paper,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Grid
 } from '@mui/material';
 import {
   ExpandMore,
@@ -22,173 +28,162 @@ import {
 import { TaskRequest } from '../types';
 
 interface TaskFormProps {
-  onSubmit: (request: TaskRequest) => Promise<void>;
+  onSubmit: (task: string, context: string, priority: string) => void;
   loading: boolean;
-  error?: string | null;
 }
 
-// Sample tasks for user guidance
+// Industry-agnostic sample tasks
 const sampleTasks = [
     {
-      title: "Database Selection",
-      task: "Which database should we use for our new social media app?",
-      context: {
-        expected_daily_users: 50000,
-        team_sql_experience: "intermediate",
-        budget_constraint: "moderate",
-        scalability_importance: "high",
-      }
+      category: "Business Strategy",
+      task: "Develop a market entry strategy for a new geographic region",
+      context: "SaaS company with $10M ARR looking to expand internationally"
     },
     {
-      title: "Marketing Strategy",
-      task: "Should we invest in social media marketing or SEO for our e-commerce store?",
-      context: {
-        monthly_budget: 5000,
-        target_audience_age: "25-40",
-        product_category: "fashion",
-        time_horizon: "6 months"
-      }
+      category: "Technology",
+      task: "Evaluate whether to build vs buy a customer analytics platform",
+      context: "Mid-size e-commerce company with 50,000 daily active users"
     },
+    {
+      category: "Finance",
+      task: "Optimize budget allocation across marketing channels",
+      context: "D2C brand with $5M annual revenue and 15% growth target"
+    },
+    {
+      category: "Operations",
+      task: "Implement automation to reduce manual data processing",
+      context: "Professional services firm with 200 employees and growing data volume"
+    },
+    {
+      category: "HR & Talent",
+      task: "Design a remote work policy for hybrid workforce",
+      context: "Tech startup with 75 employees across multiple time zones"
+    },
+    {
+      category: "Product",
+      task: "Prioritize feature development for Q2 roadmap",
+      context: "Mobile app with 100K users and limited engineering resources"
+    },
+    {
+      category: "Sales",
+      task: "Restructure sales territories to improve coverage and efficiency",
+      context: "B2B software company with 25-person sales team and uneven performance"
+    },
+    {
+      category: "Marketing",
+      task: "Launch a content marketing strategy to increase brand awareness",
+      context: "B2B consulting firm competing in saturated market"
+    }
 ];
 
-const TaskForm: React.FC<TaskFormProps> = ({ onSubmit, loading, error }) => {
-  const [taskDescription, setTaskDescription] = useState('');
-  const [contextInput, setContextInput] = useState('');
-  const [showAdvanced, setShowAdvanced] = useState(false);
-  const [isValidJson, setIsValidJson] = useState(true);
+const TaskForm: React.FC<TaskFormProps> = ({ onSubmit, loading }) => {
+  const [task, setTask] = useState('');
+  const [context, setContext] = useState('');
+  const [priority, setPriority] = useState('medium');
 
-  const handleJsonChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const jsonString = e.target.value;
-    setContextInput(jsonString);
-    if (!jsonString.trim()) {
-      setIsValidJson(true);
-      return;
-    }
-    try {
-      JSON.parse(jsonString);
-      setIsValidJson(true);
-    } catch {
-      setIsValidJson(false);
-    }
-  };
-  
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!taskDescription.trim() || !isValidJson) {
-      return;
+    if (task.trim()) {
+      onSubmit(task, context, priority);
     }
-    const context = contextInput.trim() ? JSON.parse(contextInput) : {};
-    onSubmit({ task_description: taskDescription, context });
   };
-  
-  const loadSample = (sample: typeof sampleTasks[0]) => {
-    setTaskDescription(sample.task);
-    setContextInput(JSON.stringify(sample.context, null, 2));
-    setShowAdvanced(true);
-  };
-  
-  const clearForm = () => {
-    setTaskDescription('');
-    setContextInput('');
+
+  const handleSampleTaskClick = (sampleTask: typeof sampleTasks[0]) => {
+    setTask(sampleTask.task);
+    setContext(sampleTask.context);
   };
 
   return (
-    <Card component="form" onSubmit={handleSubmit} sx={{ p: { xs: 2, md: 4 } }}>
-      <CardContent>
-        <Typography variant="h4" gutterBottom sx={{ fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: 1 }}>
-          <AutoAwesome color="primary" />
-          Describe Your Task
+    <Paper elevation={3} sx={{ p: 3, mb: 3 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+        <AutoAwesome sx={{ mr: 1, color: 'primary.main' }} />
+        <Typography variant="h5" component="h2">
+          AI Decision Assistant
         </Typography>
-        
+      </Box>
+      
+      <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+        Get expert AI analysis and recommendations for any business decision. 
+        Our system provides detailed reasoning, alternatives, and risk assessment.
+      </Typography>
+
+      <form onSubmit={handleSubmit}>
         <TextField
           fullWidth
           multiline
-          rows={4}
-          value={taskDescription}
-          onChange={(e) => setTaskDescription(e.target.value)}
-          placeholder="e.g., Should I invest in stocks or real estate?"
-          variant="outlined"
-          disabled={loading}
+          rows={3}
+          label="Describe your decision or challenge"
+          value={task}
+          onChange={(e) => setTask(e.target.value)}
+          margin="normal"
           required
-          sx={{ mb: 2 }}
+          placeholder="e.g., Should we invest in AI automation for our customer service?"
         />
 
-        <Button 
-          variant="text" 
-          onClick={() => setShowAdvanced(!showAdvanced)} 
-          startIcon={showAdvanced ? <ExpandLess /> : <ExpandMore />}
-          sx={{ mb: 1 }}
+        <TextField
+          fullWidth
+          multiline
+          rows={2}
+          label="Additional Context (Optional)"
+          value={context}
+          onChange={(e) => setContext(e.target.value)}
+          margin="normal"
+          placeholder="e.g., Company size, budget constraints, timeline, specific requirements..."
+        />
+
+        <FormControl fullWidth margin="normal">
+          <InputLabel>Priority Level</InputLabel>
+          <Select
+            value={priority}
+            label="Priority Level"
+            onChange={(e) => setPriority(e.target.value)}
+          >
+            <MenuItem value="low">Low - Exploratory analysis</MenuItem>
+            <MenuItem value="medium">Medium - Important decision</MenuItem>
+            <MenuItem value="high">High - Critical/urgent decision</MenuItem>
+          </Select>
+        </FormControl>
+
+        <Button
+          type="submit"
+          variant="contained"
+          size="large"
+          fullWidth
+          disabled={loading || !task.trim()}
+          startIcon={<Send />}
+          sx={{ mt: 2, mb: 3 }}
         >
-          {showAdvanced ? 'Hide Advanced Options' : 'Show Advanced Options'}
+          {loading ? 'AI is analyzing...' : 'Get AI Recommendation'}
         </Button>
+      </form>
 
-        <Collapse in={showAdvanced}>
-          <Typography variant="h6" gutterBottom sx={{ mt: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
-            <DataObject color="primary" />
-            Provide Context (as JSON)
-          </Typography>
-          <TextField
-            fullWidth
-            multiline
-            rows={6}
-            value={contextInput}
-            onChange={handleJsonChange}
-            placeholder='{ "risk_tolerance": "high", "investment_horizon": "10 years" }'
-            variant="outlined"
-            disabled={loading}
-            error={!isValidJson}
-            helperText={!isValidJson && "Please enter valid JSON."}
-            sx={{ 
-              '& .MuiOutlinedInput-root': { fontFamily: 'monospace' },
-            }}
-          />
-        </Collapse>
-
-        <Box sx={{ mt: 3 }}>
-          <Typography variant="body2" color="text.secondary" gutterBottom>
-            Need inspiration? Try a sample:
-          </Typography>
-          <Stack direction="row" spacing={1} flexWrap="wrap">
-            {sampleTasks.map(sample => (
-              <Chip
-                key={sample.title}
-                label={sample.title}
-                onClick={() => loadSample(sample)}
-                disabled={loading}
-                variant="outlined"
-                color="secondary"
-              />
-            ))}
-          </Stack>
-        </Box>
-
-        {error && (
-            <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>
-        )}
-
-        <Stack direction="row" spacing={2} sx={{ mt: 4 }}>
-          <Button
-            type="submit"
-            variant="contained"
-            color="primary"
-            disabled={loading || !taskDescription.trim() || !isValidJson}
-            startIcon={<Send />}
-            size="large"
-          >
-            {loading ? 'Analyzing...' : 'Get Decision'}
-          </Button>
-          <Button
-            variant="outlined"
-            onClick={clearForm}
-            disabled={loading}
-            startIcon={<Refresh />}
-            size="large"
-          >
-            Clear
-          </Button>
-        </Stack>
-      </CardContent>
-    </Card>
+      <Typography variant="h6" gutterBottom sx={{ mt: 3 }}>
+        Try these sample scenarios:
+      </Typography>
+      
+      <Grid container spacing={1}>
+        {sampleTasks.map((sample, index) => (
+          <Grid item xs={12} sm={6} md={4} key={index}>
+            <Chip
+              label={`${sample.category}: ${sample.task.substring(0, 40)}...`}
+              onClick={() => handleSampleTaskClick(sample)}
+              sx={{ 
+                width: '100%', 
+                height: 'auto',
+                py: 1,
+                '& .MuiChip-label': {
+                  whiteSpace: 'normal',
+                  textAlign: 'left'
+                }
+              }}
+              variant="outlined"
+              color="primary"
+              clickable
+            />
+          </Grid>
+        ))}
+      </Grid>
+    </Paper>
   );
 };
 

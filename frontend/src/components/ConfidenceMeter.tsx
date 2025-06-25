@@ -3,10 +3,11 @@ import { Box, Typography, LinearProgress, Tooltip } from '@mui/material';
 import { CheckCircle, Warning, Error, HelpOutline } from '@mui/icons-material';
 
 interface ConfidenceMeterProps {
-  value: number;
+  confidence: number;
 }
 
-const ConfidenceMeter: React.FC<ConfidenceMeterProps> = ({ value }) => {
+const ConfidenceMeter: React.FC<ConfidenceMeterProps> = ({ confidence }) => {
+  const value = confidence;
   const getConfidenceProps = (confidence: number) => {
     if (confidence >= 75) {
       return {

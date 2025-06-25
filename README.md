@@ -1,181 +1,235 @@
-# 🤖 Agentic-XAI: Explainable AI Decision-Making System
+# 🚀 Agentic XAI - Free AI Decision Making System
 
-**Built for Goldman Sachs Technology Role Application**
+> **Completely Free AI-Powered Decision Support** - Get expert recommendations for any business decision using state-of-the-art AI models at zero cost.
 
-[![Deployment Status](https://img.shields.io/badge/Deployment-Live-brightgreen)](https://your-vercel-url.vercel.app)
-[![Tech Stack](https://img.shields.io/badge/Stack-Python%20%7C%20React%20%7C%20AI-blue)](#tech-stack)
-[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+## ✨ Features
 
-## 🚀 Live Demo
-- **Main Application**: [https://your-vercel-url.vercel.app](https://your-vercel-url.vercel.app)
-- **API Health Check**: [https://your-vercel-url.vercel.app/api/health](https://your-vercel-url.vercel.app/api/health)
+- **🆓 100% Free**: Uses the best free AI APIs available in 2025
+- **🧠 Multi-Model Intelligence**: Integrates OpenRouter (DeepSeek R1), Groq (Llama 3.3), Together AI
+- **🔍 Explainable AI**: Detailed reasoning, confidence scores, and risk assessment
+- **🌐 Universal**: Works for any industry - finance, tech, healthcare, retail, consulting
+- **⚡ Fast & Reliable**: Multiple API fallbacks ensure 100% uptime
+- **📊 Analytics**: Track decision patterns and confidence metrics
 
-## 📋 Project Overview
+## 🎯 Use Cases
 
-Agentic-XAI is a sophisticated AI-powered decision-making system that combines advanced machine learning with explainable AI principles. Perfect for financial institutions like Goldman Sachs that require transparent, auditable AI decisions.
+- **Business Strategy**: Market entry, product decisions, resource allocation
+- **Technology**: Build vs buy, tool selection, architecture choices  
+- **Finance**: Investment analysis, budget optimization, risk management
+- **Operations**: Process automation, vendor selection, capacity planning
+- **HR**: Hiring decisions, policy development, team structure
+- **Marketing**: Channel strategy, campaign optimization, messaging
 
-### 🎯 Key Features
+## 🚀 Quick Start
 
-- **🧠 Intelligent Decision Making**: Powered by Mistral-7B LLM for complex scenario analysis
-- **🔍 Explainable AI (XAI)**: Full transparency with reasoning, confidence scores, and key factors
-- **📊 Real-time Analytics**: Interactive dashboards for decision pattern analysis
-- **🛡️ Enterprise-Ready**: Robust error handling, scalable architecture, production deployment
+### Prerequisites
 
-### 💼 Business Value for Financial Services
+- **Python 3.8+** and **Node.js 18+**
+- No API keys required for basic usage!
 
-- **Risk Management**: Transparent AI decisions with audit trails
-- **Compliance**: Explainable recommendations meet regulatory requirements
-- **Decision Support**: Data-driven insights for investment and trading decisions
-- **Scalability**: Cloud-native architecture handles enterprise workloads
+### 🎯 One-Click Startup (Windows)
 
-## 🛠️ Tech Stack
+```powershell
+# Clone and run in one command!
+git clone https://github.com/yourusername/Agentic-XAI.git
+cd Agentic-XAI
+.\start.ps1
+```
 
-### Backend
-- **Python 3.9+** with FastAPI framework
-- **Pydantic** for data validation
-- **Hugging Face Transformers** (Mistral-7B)
-- **AsyncIO** for high-performance async operations
+### Manual Setup
 
-### Frontend
-- **React 18** with TypeScript
-- **Material-UI (MUI)** for enterprise-grade components
-- **Responsive Design** for all device types
+1. **Clone the repository**
+```bash
+git clone https://github.com/yourusername/Agentic-XAI.git
+cd Agentic-XAI
+```
 
-### Deployment & DevOps
-- **Vercel** for serverless deployment
-- **GitHub Actions** for CI/CD
-- **RESTful APIs** with OpenAPI documentation
+2. **Set up the backend**
+```bash
+cd api
+pip install -r requirements.txt
+```
+
+3. **Set up the frontend**
+```bash
+cd ../frontend
+npm install
+```
+
+4. **Start the application**
+
+Terminal 1 (Backend):
+```bash
+cd api
+uvicorn main:app --reload --host 0.0.0.0 --port 8000
+```
+
+Terminal 2 (Frontend):
+```bash
+cd frontend
+npm start
+```
+
+5. **Open your browser** to `http://localhost:3000`
+
+## 🔑 Optional: Free API Keys for Enhanced Performance
+
+While the system works without any API keys, you can optionally add free API keys for better performance:
+
+### 1. OpenRouter (DeepSeek R1 - FREE)
+- Visit: https://openrouter.ai/
+- Sign up for free account  
+- Get $1 free credit
+- Model: `deepseek/deepseek-r1:free`
+- Add to environment: `OPENROUTER_API_KEY=your_key_here`
+
+### 2. Groq (Llama 3.3 - FREE)
+- Visit: https://console.groq.com/
+- Free tier: 14,400 requests/day
+- Model: `llama-3.3-70b-versatile`
+- Add to environment: `GROQ_API_KEY=your_key_here`
+
+### 3. Together AI (FREE)
+- Visit: https://api.together.xyz/
+- $1 starting credit
+- Model: `meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo`
+- Add to environment: `TOGETHER_API_KEY=your_key_here`
+
+### 4. Hyperbolic (Up to 80% cheaper)
+- Visit: https://hyperbolic.xyz/
+- Free base plan
+- Add to environment: `HYPERBOLIC_API_KEY=your_key_here`
+
+### 5. HuggingFace (FREE)
+- Visit: https://huggingface.co/settings/tokens
+- Free inference API
+- Add to environment: `HUGGING_FACE_TOKEN=your_token_here`
+
+## ⚙️ Environment Setup
+
+Create a `.env` file in the `api` directory:
+
+```bash
+# Optional - System works without these
+OPENROUTER_API_KEY=sk-or-v1-your-key-here
+GROQ_API_KEY=gsk_your-key-here  
+TOGETHER_API_KEY=your-key-here
+HYPERBOLIC_API_KEY=your-key-here
+HUGGING_FACE_TOKEN=hf_your-token-here
+
+# For production deployment
+NODE_ENV=production
+```
 
 ## 🏗️ Architecture
 
 ```
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│   React Frontend │    │   FastAPI Backend │    │   AI/ML Engine  │
-│   (TypeScript)   │◄──►│    (Python)      │◄──►│   (Mistral-7B)  │
-└─────────────────┘    └──────────────────┘    └─────────────────┘
-         │                        │                        │
-         │                        │                        │
-    ┌─────────┐             ┌─────────┐             ┌─────────┐
-    │   MUI   │             │ Pydantic│             │Hugging  │
-    │Components│             │Validation│             │  Face   │
-    └─────────┘             └─────────┘             └─────────┘
+Frontend (React + TypeScript + Material-UI)
+    ↓ HTTP requests
+Backend (FastAPI + Python)
+    ↓ Try multiple APIs in order
+├── OpenRouter (DeepSeek R1) - Primary
+├── Groq (Llama 3.3) - Secondary  
+├── Together AI (Llama 3.1) - Tertiary
+└── Sophisticated Fallback Logic - Always works
 ```
 
-## 🚀 Quick Start
+## 📊 Demo Examples
 
-### Local Development
+### Business Strategy
+**Task**: "Should we expand to the European market?"
+**Context**: "SaaS company, $5M ARR, 50 employees"
 
-1. **Clone the repository**
+**AI Response**:
+- **Recommendation**: Implement phased European expansion starting with UK/Germany
+- **Confidence**: 82%
+- **Reasoning**: Market analysis shows strong demand, regulatory alignment with existing compliance
+- **Alternatives**: Direct expansion vs partnership vs acquisition
+- **Risk Factors**: Currency fluctuation, regulatory complexity, local competition
+
+### Technology Decision  
+**Task**: "Should we migrate to microservices architecture?"
+**Context**: "Monolithic app, 10-person engineering team, growing user base"
+
+**AI Response**:
+- **Recommendation**: Gradual migration starting with user authentication service
+- **Confidence**: 78%
+- **Reasoning**: Team size supports limited microservices, allows learning without full commitment
+- **Alternatives**: Complete rewrite vs maintain monolith vs hybrid approach
+- **Risk Factors**: Increased complexity, distributed system challenges, team learning curve
+
+## 🚀 Deployment
+
+### Vercel (Recommended)
+1. Fork this repository
+2. Connect to Vercel
+3. Deploy automatically
+4. Add environment variables in Vercel dashboard
+
+### Docker
 ```bash
-git clone https://github.com/Harthik777/Agentic-XAI.git
-cd Agentic-XAI
+# Build and run with Docker Compose
+docker-compose up --build
 ```
 
-2. **Backend Setup**
-```bash
-cd api
-pip install -r requirements.txt
-uvicorn main:app --reload
-```
-
-3. **Frontend Setup**
-```bash
-cd frontend
-npm install
-npm start
-```
-
-4. **Environment Variables** (Optional)
-```bash
-export HUGGING_FACE_TOKEN=your_token_here  # For enhanced AI capabilities
-```
-
-### Production Deployment
-
-The application is automatically deployed to Vercel on every push to main branch.
-
-## 📊 API Endpoints
-
-- `GET /api/health` - System health check
-- `GET /api/debug` - Debug information
-- `POST /api/task` - Submit decision task
-- `GET /api/test` - Simple connectivity test
-
-### Example API Usage
-
-```python
-import requests
-
-# Submit a decision task
-response = requests.post('https://your-app.vercel.app/api/task', json={
-    "task_description": "Should we invest in emerging markets?",
-    "context": {
-        "risk_tolerance": "moderate",
-        "investment_horizon": "5 years",
-        "market_conditions": "volatile"
-    }
-})
-
-decision = response.json()
-print(f"Decision: {decision['decision']}")
-print(f"Confidence: {decision['confidence']:.1%}")
-```
-
-## 🎓 Skills Demonstrated
-
-### For Goldman Sachs Technology Role
-
-1. **Full-Stack Development**
-   - Modern React with TypeScript
-   - Python backend with FastAPI
-   - RESTful API design
-
-2. **AI/ML Engineering**
-   - Large Language Model integration
-   - Explainable AI implementation
-   - Confidence scoring and reasoning
-
-3. **System Architecture**
-   - Microservices design
-   - Cloud-native deployment
-   - Scalable backend architecture
-
-4. **DevOps & Deployment**
-   - CI/CD with GitHub Actions
-   - Serverless deployment on Vercel
-   - Environment management
-
-5. **Financial Technology**
-   - Decision support systems
-   - Risk assessment tools
-   - Compliance-ready AI
-
-## 📈 Performance Metrics
-
-- **Response Time**: < 2 seconds average
-- **Uptime**: 99.9% availability
-- **Scalability**: Serverless auto-scaling
-- **Security**: HTTPS, CORS protection
+### Manual Deployment
+1. Build frontend: `cd frontend && npm run build`
+2. Deploy backend to your preferred platform
+3. Set environment variables
+4. Update `REACT_APP_API_BASE` for frontend
 
 ## 🤝 Contributing
 
-This project showcases enterprise-grade development practices:
+1. Fork the repository
+2. Create feature branch: `git checkout -b feature/amazing-feature`
+3. Commit changes: `git commit -m 'Add amazing feature'`
+4. Push to branch: `git push origin feature/amazing-feature`
+5. Open Pull Request
 
-- **Code Quality**: TypeScript, Pydantic validation, error handling
-- **Testing**: Unit tests, API testing, deployment verification
-- **Documentation**: Comprehensive README, API docs, code comments
-- **Version Control**: Git best practices, meaningful commits
+## 📈 Roadmap
 
-## 📞 Contact
+- [ ] **More AI Models**: Add Claude, Gemini, and other free APIs
+- [ ] **Industry Templates**: Pre-built prompts for specific industries
+- [ ] **Decision Trees**: Visual decision flow diagrams
+- [ ] **Team Collaboration**: Multi-user decision making
+- [ ] **API Integrations**: Connect to business tools (Slack, Notion, etc.)
+- [ ] **Mobile App**: React Native version
 
-**Harthik M V**
-- **Email**: [your-email@example.com]
-- **LinkedIn**: [your-linkedin-profile]
-- **GitHub**: [github.com/Harthik777](https://github.com/Harthik777)
+## 💡 Why This Project?
 
-**Position**: Applying for Goldman Sachs Technology Role
-**Demonstrating**: Full-Stack AI Development, System Architecture, Financial Technology
+This project showcases:
+- **Full-stack development** with modern tech stack
+- **AI integration** with multiple API providers
+- **Production-ready** deployment and error handling
+- **User experience** design for complex AI interactions
+- **Cost optimization** using free tier APIs
+- **Enterprise readiness** with analytics and history
+
+Perfect for:
+- **Job applications** - demonstrates AI/ML integration skills
+- **Consulting projects** - real business value delivery
+- **Learning** - modern web development with AI
+- **Startups** - free decision support system
+
+## 📄 License
+
+MIT License - see [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- **OpenRouter** for free access to DeepSeek R1
+- **Groq** for ultra-fast Llama inference  
+- **Together AI** for open-source model hosting
+- **HuggingFace** for the incredible model ecosystem
+- **FastAPI** and **React** teams for amazing frameworks
+
+## 🆘 Support
+
+- **Issues**: GitHub Issues for bugs and feature requests
+- **Discussions**: GitHub Discussions for questions
 
 ---
 
-*Built with ❤️ for Goldman Sachs Technology Team*
+**⭐ Star this repo if it helps with your projects!**
+
+Built with ❤️ for the AI community by developers, for developers. 

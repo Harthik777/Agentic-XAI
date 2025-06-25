@@ -17,41 +17,13 @@ import {
   ExpandMore as ExpandMoreIcon,
   ExpandLess as ExpandLessIcon
 } from '@mui/icons-material';
-import { Decision } from '../types';
+import { TaskResponse } from '../types';
 
-interface DecisionHistoryItem {
-  id: string;
-  task: string;
-  decision: Decision;
-  timestamp: Date;
+interface DecisionHistoryProps {
+  decisions: TaskResponse[];
 }
 
-const DecisionHistory: React.FC = () => {
-  const [history, setHistory] = useState<DecisionHistoryItem[]>([
-    {
-      id: '1',
-      task: 'Should I learn Python or JavaScript?',
-      decision: {
-        decision: 'Learn JavaScript first for web development',
-        confidence: 0.85,
-        reasoning: ['JavaScript is essential for frontend', 'Can be used for backend too', 'Larger job market'],
-        key_factors: { 'Market Demand': 'Very High', 'Learning Curve': 'Moderate' }
-      },
-      timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000)
-    },
-    {
-      id: '2', 
-      task: 'Should we use microservices or monolith?',
-      decision: {
-        decision: 'Start with monolith, migrate to microservices later',
-        confidence: 0.78,
-        reasoning: ['Team size is small', 'Faster initial development', 'Can refactor later'],
-        key_factors: { 'Team Size': 'Small', 'Complexity': 'Medium' }
-      },
-      timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000)
-    }
-  ]);
-
+const DecisionHistory: React.FC<DecisionHistoryProps> = ({ decisions }) => {
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
 
   const toggleExpanded = (id: string) => {
@@ -65,20 +37,19 @@ const DecisionHistory: React.FC = () => {
   };
 
   const exportHistory = () => {
-    const exportData = history.map(item => ({
-      task: item.task,
-      decision: item.decision.decision,
-      confidence: item.decision.confidence,
-      timestamp: item.timestamp.toISOString(),
-      reasoning: item.decision.reasoning.join('; '),
-      key_factors: Object.entries(item.decision.key_factors)
-        .map(([k, v]) => `${k}: ${v}`).join('; ')
+    const exportData = decisions.map((item, index) => ({
+      decision_id: item.decision_id,
+      recommendation: item.recommendation,
+      confidence: item.confidence,
+      reasoning: item.reasoning,
+      risk_factors: item.risk_factors.join('; '),
+      alternatives: item.alternatives.map(alt => `${alt.option}: ${alt.description}`).join('; ')
     }));
 
     const csv = [
-      'Task,Decision,Confidence,Timestamp,Reasoning,Key Factors',
+      'Decision ID,Recommendation,Confidence,Reasoning,Risk Factors,Alternatives',
       ...exportData.map(row => 
-        `"${row.task}","${row.decision}",${row.confidence},"${row.timestamp}","${row.reasoning}","${row.key_factors}"`
+        `"${row.decision_id}","${row.recommendation}",${row.confidence},"${row.reasoning}","${row.risk_factors}","${row.alternatives}"`
       )
     ].join('\n');
 
@@ -89,13 +60,6 @@ const DecisionHistory: React.FC = () => {
     a.download = 'decision-history.csv';
     a.click();
     URL.revokeObjectURL(url);
-  };
-
-  const formatTimeAgo = (date: Date) => {
-    const hours = Math.floor((Date.now() - date.getTime()) / (1000 * 60 * 60));
-    if (hours < 1) return 'Less than an hour ago';
-    if (hours === 1) return '1 hour ago';
-    return `${hours} hours ago`;
   };
 
   return (
@@ -115,70 +79,67 @@ const DecisionHistory: React.FC = () => {
       </Box>
 
       <List>
-        {history.map((item, index) => (
-          <React.Fragment key={item.id}>
+        {decisions.map((item, index) => (
+          <React.Fragment key={item.decision_id}>
             <ListItem 
               sx={{ flexDirection: 'column', alignItems: 'stretch' }}
             >
               <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
                 <ListItemText
-                  primary={item.task}
-                  secondary={formatTimeAgo(item.timestamp)}
+                  primary={item.recommendation}
+                  secondary={`Decision ID: ${item.decision_id}`}
                 />
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <Chip 
-                    label={`${(item.decision.confidence * 100).toFixed(0)}% confident`}
-                    color={item.decision.confidence > 0.7 ? 'success' : 'warning'}
+                    label={`${item.confidence.toFixed(0)}% confident`}
+                    color={item.confidence > 70 ? 'success' : 'warning'}
                     size="small"
                   />
                   <IconButton
-                    onClick={() => toggleExpanded(item.id)}
+                    onClick={() => toggleExpanded(item.decision_id)}
                     size="small"
                   >
-                    {expandedItems.has(item.id) ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                    {expandedItems.has(item.decision_id) ? <ExpandLessIcon /> : <ExpandMoreIcon />}
                   </IconButton>
                 </Box>
               </Box>
 
-              <Collapse in={expandedItems.has(item.id)}>
+              <Collapse in={expandedItems.has(item.decision_id)}>
                 <Box sx={{ mt: 2, p: 2, bgcolor: 'background.default', borderRadius: 1 }}>
                   <Typography variant="subtitle2" color="primary" gutterBottom>
-                    Decision: {item.decision.decision}
+                    Recommendation: {item.recommendation}
                   </Typography>
                   
                   <Typography variant="body2" gutterBottom>
                     <strong>Reasoning:</strong>
                   </Typography>
-                  <ul style={{ margin: 0, paddingLeft: 20 }}>
-                    {item.decision.reasoning.map((reason, idx) => (
-                      <li key={idx}>
-                        <Typography variant="body2">{reason}</Typography>
-                      </li>
-                    ))}
-                  </ul>
+                  <Typography variant="body2" sx={{ mb: 2 }}>
+                    {item.reasoning}
+                  </Typography>
 
-                  <Typography variant="body2" sx={{ mt: 1 }}>
-                    <strong>Key Factors:</strong>
+                  <Typography variant="body2" gutterBottom>
+                    <strong>Risk Factors:</strong>
                   </Typography>
                   <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
-                    {Object.entries(item.decision.key_factors).map(([key, value]) => (
+                    {item.risk_factors.map((risk, idx) => (
                       <Chip 
-                        key={key}
-                        label={`${key}: ${value}`}
+                        key={idx}
+                        label={risk}
                         variant="outlined"
                         size="small"
+                        color="error"
                       />
                     ))}
                   </Box>
                 </Box>
               </Collapse>
             </ListItem>
-            {index < history.length - 1 && <Divider />}
+            {index < decisions.length - 1 && <Divider />}
           </React.Fragment>
         ))}
       </List>
 
-      {history.length === 0 && (
+      {decisions.length === 0 && (
         <Typography variant="body2" color="textSecondary" sx={{ textAlign: 'center', py: 4 }}>
           No decisions made yet. Start by submitting a task above!
         </Typography>
