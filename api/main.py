@@ -11,6 +11,11 @@ import re
 import json
 import random
 from datetime import datetime
+import hashlib
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -31,20 +36,29 @@ class TaskResponse(BaseModel):
 
 # Free AI API Configuration - Using multiple free services
 FREE_AI_APIS = {
-    "openrouter": {
-        "url": "https://openrouter.ai/api/v1/chat/completions",
-        "model": "deepseek/deepseek-r1:free",
-        "key": os.getenv("OPENROUTER_API_KEY", "")
+    "gemini": {
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent",
+        "model": "gemini-1.5-flash",
+        "key": os.getenv("GEMINI_API_KEY", ""),
+        "type": "gemini"
     },
     "groq": {
         "url": "https://api.groq.com/openai/v1/chat/completions",
         "model": "llama-3.3-70b-versatile",
-        "key": os.getenv("GROQ_API_KEY", "")
+        "key": os.getenv("GROQ_API_KEY", ""),
+        "type": "openai"
     },
-    "together": {
-        "url": "https://api.together.xyz/v1/chat/completions",
-        "model": "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
-        "key": os.getenv("TOGETHER_API_KEY", "")
+    "huggingface": {
+        "url": "https://api-inference.huggingface.co/models/microsoft/DialoGPT-large",
+        "model": "microsoft/DialoGPT-large",
+        "key": os.getenv("HUGGINGFACE_API_KEY", ""),
+        "type": "huggingface"
+    },
+    "openrouter": {
+        "url": "https://openrouter.ai/api/v1/chat/completions",
+        "model": "deepseek/deepseek-r1:free",
+        "key": os.getenv("OPENROUTER_API_KEY", ""),
+        "type": "openai"
     }
 }
 
@@ -86,10 +100,52 @@ async def get_ai_decision_free(task: str, context: str, priority: str) -> Dict[s
             
         try:
             async with httpx.AsyncClient() as client:
-                headers = {
-                    "Authorization": f"Bearer {config['key']}",
-                    "Content-Type": "application/json"
-                }
+                # Handle different API types
+                if config.get("type") == "gemini":
+                    # Google Gemini API format
+                    headers = {
+                        "Content-Type": "application/json"
+                    }
+                    url = f"{config['url']}?key={config['key']}"
+                    payload = {
+                        "contents": [{
+                            "parts": [{"text": prompt}]
+                        }],
+                        "generationConfig": {
+                            "temperature": 0.7,
+                            "maxOutputTokens": 2000
+                        }
+                    }
+                elif config.get("type") == "huggingface":
+                    # Hugging Face API format
+                    headers = {
+                        "Authorization": f"Bearer {config['key']}",
+                        "Content-Type": "application/json"
+                    }
+                    url = config["url"]
+                    payload = {
+                        "inputs": prompt,
+                        "parameters": {
+                            "max_new_tokens": 2000,
+                            "temperature": 0.7
+                        }
+                    }
+                else:
+                    # OpenAI-compatible APIs (Groq, OpenRouter)
+                    headers = {
+                        "Authorization": f"Bearer {config['key']}",
+                        "Content-Type": "application/json"
+                    }
+                    url = config["url"]
+                    payload = {
+                        "model": config["model"],
+                        "messages": [
+                            {"role": "system", "content": "You are an expert AI decision-making assistant. Always respond with valid JSON."},
+                            {"role": "user", "content": prompt}
+                        ],
+                        "temperature": 0.7,
+                        "max_tokens": 2000
+                    }
                 
                 # Add specific headers for OpenRouter
                 if api_name == "openrouter":
@@ -99,23 +155,23 @@ async def get_ai_decision_free(task: str, context: str, priority: str) -> Dict[s
                     })
                 
                 response = await client.post(
-                    config["url"],
+                    url,
                     headers=headers,
-                json={
-                        "model": config["model"],
-                        "messages": [
-                            {"role": "system", "content": "You are an expert AI decision-making assistant. Always respond with valid JSON."},
-                            {"role": "user", "content": prompt}
-                        ],
-                        "temperature": 0.7,
-                        "max_tokens": 2000
-                },
+                    json=payload,
                     timeout=30.0
-            )
+                )
             
             if response.status_code == 200:
                     ai_response = response.json()
-                    content = ai_response["choices"][0]["message"]["content"]
+                    
+                    # Extract content based on API type
+                    if config.get("type") == "gemini":
+                        content = ai_response["candidates"][0]["content"]["parts"][0]["text"]
+                    elif config.get("type") == "huggingface":
+                        content = ai_response[0]["generated_text"] if isinstance(ai_response, list) else ai_response.get("generated_text", "")
+                    else:
+                        # OpenAI-compatible APIs
+                        content = ai_response["choices"][0]["message"]["content"]
                     
                     # Try to parse JSON from the response
                     try:
@@ -150,8 +206,14 @@ async def get_ai_decision_free(task: str, context: str, priority: str) -> Dict[s
 def create_sophisticated_fallback(task: str, context: str, priority: str) -> Dict[str, Any]:
     """Enhanced fallback logic with sophisticated decision patterns for any industry"""
     
+    # Create deterministic seed from task and context
+    input_str = f"{task.lower().strip()}{context.lower().strip()}{priority}"
+    seed_hash = int(hashlib.md5(input_str.encode()).hexdigest()[:8], 16)
+    
     confidence_base = {"high": 85, "medium": 75, "low": 65}[priority]
-    confidence = min(95, confidence_base + random.randint(-5, 15))
+    # Make confidence deterministic but still varied
+    confidence_variation = (seed_hash % 21) - 10  # -10 to +10 range
+    confidence = min(95, max(60, confidence_base + confidence_variation))
     
     # Industry-agnostic decision patterns
     task_lower = task.lower()
@@ -224,8 +286,18 @@ def create_sophisticated_fallback(task: str, context: str, priority: str) -> Dic
         "Organizational readiness and cultural factors"
     ]
     
-    # Select 3-4 most relevant risk factors
-    selected_risks = random.sample(risk_factors, min(4, len(risk_factors)))
+    # Deterministic selection of risk factors based on input hash
+    num_risks = 3 + (seed_hash % 2)  # 3 or 4 risks
+    selected_indices = []
+    temp_hash = seed_hash
+    for _ in range(num_risks):
+        idx = temp_hash % len(risk_factors)
+        while idx in selected_indices:
+            temp_hash = temp_hash * 31 + 17  # Simple hash evolution
+            idx = temp_hash % len(risk_factors)
+        selected_indices.append(idx)
+    
+    selected_risks = [risk_factors[i] for i in sorted(selected_indices)]
     
     return {
         "recommendation": pattern["recommendation"],
@@ -288,8 +360,10 @@ async def get_ai_decision(task: str, context: str, priority: str) -> Dict[str, A
 @app.post("/task", response_model=TaskResponse)
 async def process_task(request: TaskRequest):
     try:
-        # Generate unique decision ID
-        decision_id = f"decision_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{random.randint(1000, 9999)}"
+        # Generate deterministic decision ID based on input
+        input_str = f"{request.task}{request.context}{request.priority}"
+        decision_hash = hashlib.md5(input_str.encode()).hexdigest()[:8]
+        decision_id = f"decision_{decision_hash}"
         
         # Get AI decision
         result = await get_ai_decision(request.task, request.context, request.priority)
