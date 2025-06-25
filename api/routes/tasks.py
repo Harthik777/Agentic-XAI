@@ -1,8 +1,26 @@
 from fastapi import APIRouter, HTTPException, Depends
 from typing import Dict, Any
 import logging
+import os
+import sys
 
-from logic.agent_logic import IntelligentAgent, Decision
+# Add parent directory to path for imports
+parent_dir = os.path.dirname(os.path.dirname(__file__))
+sys.path.insert(0, parent_dir)
+
+# Import with error handling for different environments
+try:
+    from logic.agent_logic import IntelligentAgent, Decision
+except ImportError:
+    # Fallback for Vercel serverless environment
+    import importlib.util
+    logic_path = os.path.join(parent_dir, 'logic', 'agent_logic.py')
+    spec = importlib.util.spec_from_file_location("agent_logic", logic_path)
+    agent_module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(agent_module)
+    IntelligentAgent = agent_module.IntelligentAgent
+    Decision = agent_module.Decision
+
 from pydantic import BaseModel, Field
 
 # Configure logging

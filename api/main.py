@@ -6,9 +6,20 @@ import os
 import sys
 
 # Add the current directory to Python path for Vercel
-sys.path.append(os.path.dirname(__file__))
+current_dir = os.path.dirname(__file__)
+sys.path.insert(0, current_dir)
 
-from routes import tasks
+# Import with error handling for different environments
+try:
+    from routes import tasks
+except ImportError:
+    # Fallback for Vercel serverless environment
+    import importlib.util
+    tasks_path = os.path.join(current_dir, 'routes', 'tasks.py')
+    spec = importlib.util.spec_from_file_location("tasks", tasks_path)
+    tasks_module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(tasks_module)
+    tasks = tasks_module
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
