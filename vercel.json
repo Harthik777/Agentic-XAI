@@ -31,11 +31,6 @@
       "dest": "/frontend/build/index.html"
     }
   ],
-  "functions": {
-    "api/main.py": {
-      "runtime": "python3.9"
-    }
-  },
   "env": {
     "NODE_ENV": "production"
   }
