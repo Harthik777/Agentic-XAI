@@ -57,9 +57,4 @@ async def health_check():
     """
     Health check endpoint to verify service status.
     """
-    return {"status": "healthy", "version": app.version}
-
-# Handler for Vercel
-def handler(request, context):
-    """Vercel handler function"""
-    return app 
+    return {"status": "healthy", "version": app.version} 

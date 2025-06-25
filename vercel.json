@@ -23,18 +23,6 @@
       "dest": "/frontend/build/static/$1"
     },
     {
-      "src": "/manifest.json",
-      "dest": "frontend/manifest.json"
-    },
-    {
-      "src": "/favicon.ico",
-      "dest": "frontend/favicon.ico"
-    },
-    {
-      "src": "/asset-manifest.json",
-      "dest": "frontend/asset-manifest.json"
-    },
-    {
       "src": "/(.*\\.(js|css|map|json|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot))$",
       "dest": "/frontend/build/$1"
     },
