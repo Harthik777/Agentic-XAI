@@ -5,11 +5,8 @@
   "scripts": {
     "start-frontend": "cd frontend && npm start",
     "start-backend": "cd api && uvicorn main:app --reload",
-    "build": "cd frontend && npm install && npm run build",
-    "vercel-build": "cd frontend && npm install && npm run build"
-  },
-  "devDependencies": {
-    "fs-extra": "^11.3.0"
+    "build": "cd frontend && npm ci && npm run build",
+    "vercel-build": "cd frontend && npm ci && npm run build"
   },
   "engines": {
     "node": ">=18.0.0"
@@ -21,7 +18,6 @@
     "agent",
     "explainable-ai"
   ],
-  "author": "",
-  "license": "MIT",
-  "deploymentTimestamp": "2025-06-25T14:45:00Z"
+  "author": "Harthik M V",
+  "license": "MIT"
 }
