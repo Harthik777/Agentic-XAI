@@ -1,150 +1,225 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import {
-  Paper,
-  Typography,
-  List,
-  ListItem,
-  ListItemText,
-  Chip,
-  Button,
   Box,
-  Divider,
-  IconButton,
-  Collapse
+  Typography,
+  Card,
+  CardContent,
+  Chip,
+  Grid,
+  useTheme,
+  alpha,
+  Stack,
 } from '@mui/material';
 import {
-  Download as DownloadIcon,
-  ExpandMore as ExpandMoreIcon,
-  ExpandLess as ExpandLessIcon
+  History,
+  Assessment,
 } from '@mui/icons-material';
+import { motion } from 'framer-motion';
 import { TaskResponse } from '../types';
 
 interface DecisionHistoryProps {
   decisions: TaskResponse[];
 }
 
+// Animation variants
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.1 }
+  }
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, x: -20 },
+  visible: { opacity: 1, x: 0 }
+};
+
 const DecisionHistory: React.FC<DecisionHistoryProps> = ({ decisions }) => {
-  const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
+  const theme = useTheme();
 
-  const toggleExpanded = (id: string) => {
-    const newExpanded = new Set(expandedItems);
-    if (newExpanded.has(id)) {
-      newExpanded.delete(id);
-    } else {
-      newExpanded.add(id);
-    }
-    setExpandedItems(newExpanded);
+  if (!decisions || decisions.length === 0) {
+    return null;
+  }
+
+  const getConfidenceColor = (confidence: number) => {
+    if (confidence >= 80) return theme.palette.success.main;
+    if (confidence >= 60) return theme.palette.warning.main;
+    return theme.palette.error.main;
   };
 
-  const exportHistory = () => {
-    const exportData = decisions.map((item, index) => ({
-      decision_id: item.decision_id,
-      recommendation: item.recommendation,
-      confidence: item.confidence,
-      reasoning: item.reasoning,
-      risk_factors: item.risk_factors.join('; '),
-      alternatives: item.alternatives.map(alt => `${alt.option}: ${alt.description}`).join('; ')
-    }));
 
-    const csv = [
-      'Decision ID,Recommendation,Confidence,Reasoning,Risk Factors,Alternatives',
-      ...exportData.map(row => 
-        `"${row.decision_id}","${row.recommendation}",${row.confidence},"${row.reasoning}","${row.risk_factors}","${row.alternatives}"`
-      )
-    ].join('\n');
-
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'decision-history.csv';
-    a.click();
-    URL.revokeObjectURL(url);
-  };
 
   return (
-    <Paper sx={{ p: 3, mb: 4 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-        <Typography variant="h5">
-          📋 Decision History
-        </Typography>
-        <Button
-          startIcon={<DownloadIcon />}
-          variant="outlined"
-          onClick={exportHistory}
-          size="small"
-        >
-          Export CSV
-        </Button>
-      </Box>
-
-      <List>
-        {decisions.map((item, index) => (
-          <React.Fragment key={item.decision_id}>
-            <ListItem 
-              sx={{ flexDirection: 'column', alignItems: 'stretch' }}
-            >
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
-                <ListItemText
-                  primary={item.recommendation}
-                  secondary={`Decision ID: ${item.decision_id}`}
-                />
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <Chip 
-                    label={`${item.confidence.toFixed(0)}% confident`}
-                    color={item.confidence > 70 ? 'success' : 'warning'}
-                    size="small"
-                  />
-                  <IconButton
-                    onClick={() => toggleExpanded(item.decision_id)}
-                    size="small"
-                  >
-                    {expandedItems.has(item.decision_id) ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-                  </IconButton>
-                </Box>
+    <motion.div
+      initial="hidden"
+      animate="visible"
+      variants={containerVariants}
+    >
+      <Card
+        elevation={0}
+        sx={{
+          mb: 4,
+          background: theme.palette.mode === 'dark'
+            ? 'linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.9) 100%)'
+            : 'linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 250, 252, 0.8) 100%)',
+          backdropFilter: 'blur(20px)',
+          border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+          borderRadius: 4,
+        }}
+      >
+        <CardContent sx={{ p: { xs: 3, sm: 4, md: 6 } }}>
+          {/* Header */}
+          <motion.div variants={itemVariants}>
+            <Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 4 }}>
+              <Box
+                sx={{
+                  width: 48,
+                  height: 48,
+                  borderRadius: '50%',
+                  background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <History sx={{ color: 'white', fontSize: 24 }} />
               </Box>
+              <Box>
+                <Typography
+                  variant="h5"
+                  sx={{
+                    fontWeight: 700,
+                    background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+                    backgroundClip: 'text',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                  }}
+                >
+                  Decision History
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Your recent AI-powered decision analysis
+                </Typography>
+              </Box>
+            </Stack>
+          </motion.div>
 
-              <Collapse in={expandedItems.has(item.decision_id)}>
-                <Box sx={{ mt: 2, p: 2, bgcolor: 'background.default', borderRadius: 1 }}>
-                  <Typography variant="subtitle2" color="primary" gutterBottom>
-                    Recommendation: {item.recommendation}
-                  </Typography>
-                  
-                  <Typography variant="body2" gutterBottom>
-                    <strong>Reasoning:</strong>
-                  </Typography>
-                  <Typography variant="body2" sx={{ mb: 2 }}>
-                    {item.reasoning}
-                  </Typography>
+          {/* Decision List */}
+          <Grid container spacing={3}>
+            {decisions.slice(0, 5).map((decision, index) => (
+              <Grid item xs={12} key={index}>
+                <motion.div
+                  variants={itemVariants}
+                  whileHover={{ scale: 1.02 }}
+                  transition={{ type: "spring", stiffness: 300 }}
+                >
+                  <Card
+                    sx={{
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease-in-out',
+                      border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`,
+                      '&:hover': {
+                        boxShadow: '0 8px 25px rgba(99, 102, 241, 0.15)',
+                        borderColor: alpha(theme.palette.primary.main, 0.3),
+                      },
+                    }}
+                  >
+                    <CardContent sx={{ p: 3 }}>
+                      <Stack spacing={2}>
+                        {/* Header Row */}
+                        <Stack 
+                          direction={{ xs: 'column', sm: 'row' }} 
+                          justifyContent="space-between" 
+                          alignItems={{ xs: 'flex-start', sm: 'center' }}
+                          spacing={2}
+                        >
+                          <Box sx={{ flex: 1, minWidth: 0 }}>
+                            <Typography
+                              variant="h6"
+                              sx={{
+                                fontWeight: 600,
+                                mb: 0.5,
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                display: '-webkit-box',
+                                WebkitLineClamp: 2,
+                                WebkitBoxOrient: 'vertical',
+                              }}
+                            >
+                              {decision.recommendation}
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary">
+                              {decision.reasoning.substring(0, 150)}...
+                            </Typography>
+                          </Box>
 
-                  <Typography variant="body2" gutterBottom>
-                    <strong>Risk Factors:</strong>
-                  </Typography>
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
-                    {item.risk_factors.map((risk, idx) => (
-                      <Chip 
-                        key={idx}
-                        label={risk}
-                        variant="outlined"
-                        size="small"
-                        color="error"
-                      />
-                    ))}
-                  </Box>
-                </Box>
-              </Collapse>
-            </ListItem>
-            {index < decisions.length - 1 && <Divider />}
-          </React.Fragment>
-        ))}
-      </List>
+                          <Stack direction="row" alignItems="center" spacing={2}>
+                            {/* Confidence Badge */}
+                            <Stack direction="row" alignItems="center" spacing={1}>
+                              <Assessment 
+                                sx={{ 
+                                  fontSize: 16, 
+                                  color: getConfidenceColor(decision.confidence) 
+                                }} 
+                              />
+                              <Typography
+                                variant="body2"
+                                sx={{
+                                  fontWeight: 600,
+                                  color: getConfidenceColor(decision.confidence),
+                                }}
+                              >
+                                {decision.confidence}%
+                              </Typography>
+                            </Stack>
 
-      {decisions.length === 0 && (
-        <Typography variant="body2" color="textSecondary" sx={{ textAlign: 'center', py: 4 }}>
-          No decisions made yet. Start by submitting a task above!
-        </Typography>
-      )}
-    </Paper>
+
+                          </Stack>
+                        </Stack>
+
+                        {/* Tags Row */}
+                        {decision.risk_factors && decision.risk_factors.length > 0 && (
+                          <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: 1 }}>
+                            <Chip
+                              size="small"
+                              label={`${decision.risk_factors.length} risks identified`}
+                              color="warning"
+                              variant="outlined"
+                              sx={{ fontSize: '0.75rem' }}
+                            />
+                            {decision.alternatives && decision.alternatives.length > 0 && (
+                              <Chip
+                                size="small"
+                                label={`${decision.alternatives.length} alternatives`}
+                                color="info"
+                                variant="outlined"
+                                sx={{ fontSize: '0.75rem' }}
+                              />
+                            )}
+                          </Stack>
+                        )}
+                      </Stack>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              </Grid>
+            ))}
+          </Grid>
+
+          {/* Footer */}
+          {decisions.length > 5 && (
+            <motion.div variants={itemVariants}>
+              <Box sx={{ mt: 3, textAlign: 'center' }}>
+                <Typography variant="body2" color="text.secondary">
+                  Showing latest 5 decisions • {decisions.length - 5} more in history
+                </Typography>
+              </Box>
+            </motion.div>
+          )}
+        </CardContent>
+      </Card>
+    </motion.div>
   );
 };
 

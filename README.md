@@ -45,13 +45,13 @@ cd Agentic-XAI
 ```
 
 2. **Set up the backend**
-```bash
+   ```bash
 cd api
 pip install -r requirements.txt
-```
+   ```
 
 3. **Set up the frontend**
-```bash
+   ```bash
 cd ../frontend
 npm install
 ```
@@ -62,13 +62,13 @@ Terminal 1 (Backend):
 ```bash
 cd api
 uvicorn main:app --reload --host 0.0.0.0 --port 8000
-```
+   ```
 
 Terminal 2 (Frontend):
-```bash
-cd frontend
-npm start
-```
+   ```bash
+   cd frontend
+   npm start
+   ```
 
 5. **Open your browser** to `http://localhost:3000`
 

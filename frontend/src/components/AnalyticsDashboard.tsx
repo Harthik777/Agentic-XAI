@@ -116,29 +116,29 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ decisions }) =>
         </Grid>
         
         {analytics.topRiskFactors.length > 0 && (
-          <Grid item xs={12}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6" gutterBottom>
+        <Grid item xs={12}>
+          <Card>
+            <CardContent>
+              <Typography variant="h6" gutterBottom>
                   Most Common Risk Factors
-                </Typography>
+              </Typography>
                 {analytics.topRiskFactors.map((riskFactor, index) => (
-                  <Box key={index} sx={{ mb: 2 }}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                <Box key={index} sx={{ mb: 2 }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                       <Typography variant="body2">{riskFactor.type}</Typography>
                       <Typography variant="body2">{riskFactor.count} mentions</Typography>
-                    </Box>
-                    <LinearProgress 
-                      variant="determinate" 
-                      value={(riskFactor.count / analytics.totalDecisions) * 100}
-                      sx={{ mt: 0.5 }}
-                      color="error"
-                    />
                   </Box>
-                ))}
-              </CardContent>
-            </Card>
-          </Grid>
+                  <LinearProgress 
+                    variant="determinate" 
+                      value={(riskFactor.count / analytics.totalDecisions) * 100}
+                    sx={{ mt: 0.5 }}
+                      color="error"
+                  />
+                </Box>
+              ))}
+            </CardContent>
+          </Card>
+        </Grid>
         )}
       </Grid>
     </Paper>

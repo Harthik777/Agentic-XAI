@@ -10,6 +10,7 @@
     "@types/node": "^18.19.10",
     "@types/react": "^18.2.48",
     "@types/react-dom": "^18.2.18",
+    "framer-motion": "12.19.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-scripts": "5.0.1",
@@ -28,7 +29,10 @@
     "extends": [
       "react-app",
       "react-app/jest"
-    ]
+    ],
+    "rules": {
+      "@typescript-eslint/no-unused-vars": "warn"
+    }
   },
   "browserslist": {
     "production": [

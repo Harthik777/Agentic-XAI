@@ -101,7 +101,7 @@ async def get_ai_decision_free(task: str, context: str, priority: str) -> Dict[s
                 response = await client.post(
                     config["url"],
                     headers=headers,
-                    json={
+                json={
                         "model": config["model"],
                         "messages": [
                             {"role": "system", "content": "You are an expert AI decision-making assistant. Always respond with valid JSON."},
@@ -109,11 +109,11 @@ async def get_ai_decision_free(task: str, context: str, priority: str) -> Dict[s
                         ],
                         "temperature": 0.7,
                         "max_tokens": 2000
-                    },
+                },
                     timeout=30.0
-                )
-                
-                if response.status_code == 200:
+            )
+            
+            if response.status_code == 200:
                     ai_response = response.json()
                     content = ai_response["choices"][0]["message"]["content"]
                     
@@ -302,7 +302,7 @@ async def process_task(request: TaskRequest):
             risk_factors=result["risk_factors"],
             decision_id=decision_id
         )
-    
+        
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error processing task: {str(e)}")
 
