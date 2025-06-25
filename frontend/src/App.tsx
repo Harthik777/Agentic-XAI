@@ -50,8 +50,22 @@ function App() {
       });
 
       if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.detail || `HTTP error! status: ${res.status}`);
+        let errorMessage = `HTTP error! status: ${res.status}`;
+        try {
+          // First try to get the response as text
+          const responseText = await res.text();
+          // Then try to parse it as JSON
+          const errorData = JSON.parse(responseText);
+          errorMessage = errorData.detail || errorMessage;
+        } catch {
+          // If response is not JSON (e.g., HTML error page), provide a helpful message
+          if (res.status >= 500) {
+            errorMessage = 'Server error occurred. Please check your environment variables and API deployment.';
+          } else if (res.status === 404) {
+            errorMessage = 'API endpoint not found. Please check your deployment configuration.';
+          }
+        }
+        throw new Error(errorMessage);
       }
 
       const data: Decision = await res.json();

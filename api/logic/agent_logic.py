@@ -28,7 +28,11 @@ class IntelligentAgent:
         self.hf_token = os.getenv("HUGGING_FACE_TOKEN")
         
         if not self.hf_token:
-            logger.warning("HUGGING_FACE_TOKEN is not set. API calls may be rate-limited or fail.")
+            logger.warning("HUGGING_FACE_TOKEN is not set. Using fallback responses.")
+            self.use_fallback = True
+        else:
+            self.use_fallback = False
+            logger.info("✅ Hugging Face token found.")
         
         self.http_client = httpx.AsyncClient(timeout=45.0)
         logger.info(f"✅ Agent initialized to use Inference API: {self.api_url}")
@@ -40,6 +44,10 @@ class IntelligentAgent:
         return cls._instance
 
     async def generate_decision(self, task_description: str, context: Dict[str, Any]) -> Decision:
+        # If no token is available, use fallback immediately
+        if self.use_fallback:
+            return self._fallback_decision("Hugging Face token not configured. Using demo response.")
+        
         prompt = self._create_structured_prompt(task_description, context)
         headers = {"Authorization": f"Bearer {self.hf_token}"}
         
@@ -117,12 +125,30 @@ class IntelligentAgent:
 
     def _fallback_decision(self, reason: str) -> Decision:
         logger.warning(f"Executing fallback decision logic due to: {reason}")
-        return Decision(
-            decision="A decision could not be reached due to a system error.",
-            confidence=0.0,
-            reasoning=["The primary AI model failed to provide a valid response.", f"Error: {reason}"],
-            key_factors={"System Status": "An internal error occurred."}
-        )
+        
+        if "token not configured" in reason.lower() or "demo" in reason.lower():
+            return Decision(
+                decision="Demo response: Consider gathering more information before making this decision.",
+                confidence=0.8,
+                reasoning=[
+                    "This is a demonstration response since the Hugging Face API token is not configured.",
+                    "In a real scenario, I would analyze the provided context carefully.",
+                    "I would weigh the pros and cons of each option.",
+                    "I would provide data-driven recommendations based on the task requirements."
+                ],
+                key_factors={
+                    "demo_mode": "This response is generated without AI model access",
+                    "configuration": "Set HUGGING_FACE_TOKEN environment variable for full functionality",
+                    "recommendation": "The system is working correctly, but needs API configuration"
+                }
+            )
+        else:
+            return Decision(
+                decision="A decision could not be reached due to a system error.",
+                confidence=0.0,
+                reasoning=["The primary AI model failed to provide a valid response.", f"Error: {reason}"],
+                key_factors={"System Status": "An internal error occurred.", "Error Details": reason}
+            )
 
 if __name__ == '__main__':
     # This allows for direct testing of the agent

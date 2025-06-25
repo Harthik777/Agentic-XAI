@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agentic-XAI API Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; border-radius: 5px; }
+        .result { background: #f5f5f5; padding: 10px; margin: 10px 0; border-radius: 3px; }
+        .error { background: #ffebee; color: #c62828; }
+        .success { background: #e8f5e8; color: #2e7d32; }
+        button { padding: 8px 16px; margin: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>Agentic-XAI API Test</h1>
+    
+    <div class="test-section">
+        <h3>API Base URL:</h3>
+        <input type="text" id="apiUrl" placeholder="Enter your Vercel deployment URL" style="width: 400px;">
+        <p><small>Example: https://your-app.vercel.app</small></p>
+    </div>
+
+    <div class="test-section">
+        <h3>Test Simple Endpoint (Plain Text)</h3>
+        <button onclick="testSimple()">Test /api/test</button>
+        <div id="simpleResult" class="result"></div>
+        <p><small>This should return "API_IS_WORKING" if the API is running</small></p>
+    </div>
+
+    <div class="test-section">
+        <h3>Test Health Endpoint</h3>
+        <button onclick="testHealth()">Test /api/health</button>
+        <div id="healthResult" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>Test Debug Endpoint</h3>
+        <button onclick="testDebug()">Test /api/debug</button>
+        <div id="debugResult" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>Test Task Endpoint</h3>
+        <button onclick="testTask()">Test /api/task</button>
+        <div id="taskResult" class="result"></div>
+    </div>
+
+    <script>
+        function getBaseUrl() {
+            const input = document.getElementById('apiUrl').value;
+            return input || window.location.origin;
+        }
+
+        async function testSimple() {
+            const resultDiv = document.getElementById('simpleResult');
+            try {
+                const response = await fetch(`${getBaseUrl()}/api/test`);
+                const data = await response.text();
+                
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    resultDiv.innerHTML = `<strong>Success:</strong><br><pre>${data}</pre>`;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.innerHTML = `<strong>Error ${response.status}:</strong><br><pre>${data}</pre>`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `<strong>Network Error:</strong><br>${error.message}`;
+            }
+        }
+
+        async function testHealth() {
+            const resultDiv = document.getElementById('healthResult');
+            try {
+                const response = await fetch(`${getBaseUrl()}/api/health`);
+                const data = await response.text();
+                
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    resultDiv.innerHTML = `<strong>Success:</strong><br><pre>${data}</pre>`;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.innerHTML = `<strong>Error ${response.status}:</strong><br><pre>${data}</pre>`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `<strong>Network Error:</strong><br>${error.message}`;
+            }
+        }
+
+        async function testDebug() {
+            const resultDiv = document.getElementById('debugResult');
+            try {
+                const response = await fetch(`${getBaseUrl()}/api/debug`);
+                const data = await response.text();
+                
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    resultDiv.innerHTML = `<strong>Success:</strong><br><pre>${data}</pre>`;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.innerHTML = `<strong>Error ${response.status}:</strong><br><pre>${data}</pre>`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `<strong>Network Error:</strong><br>${error.message}`;
+            }
+        }
+
+        async function testTask() {
+            const resultDiv = document.getElementById('taskResult');
+            try {
+                const response = await fetch(`${getBaseUrl()}/api/task`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        task_description: "Should I have coffee or tea?",
+                        context: { "time_of_day": "morning", "caffeine_sensitivity": "low" }
+                    })
+                });
+                
+                const data = await response.text();
+                
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    resultDiv.innerHTML = `<strong>Success:</strong><br><pre>${data}</pre>`;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.innerHTML = `<strong>Error ${response.status}:</strong><br><pre>${data}</pre>`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `<strong>Network Error:</strong><br>${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html> 
