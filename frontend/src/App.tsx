@@ -14,8 +14,16 @@ import TaskForm from './components/TaskForm';
 import ExplanationView from './components/ExplanationView';
 import { Decision, TaskRequest } from './types';
 
-// Use a relative path for production, fallback for development
-const API_URL = process.env.NODE_ENV === 'production' ? '' : 'http://localhost:8000';
+// Determine the base URL for the backend API.
+// 1. If the user has explicitly set REACT_APP_API_BASE, always honour it.
+// 2. Otherwise, default to:
+//    • '/api'   in production (/api routes are proxied to the FastAPI handler on Vercel)
+//    • 'http://localhost:8000' during local development when the FastAPI server is usually started with `uvicorn main:app --reload`.
+//
+// This avoids hard-coding '/api' in the fetch path which caused 404s when running locally.
+const API_BASE =
+  process.env.REACT_APP_API_BASE ??
+  (process.env.NODE_ENV === 'production' ? '/api' : 'http://localhost:8000');
 
 const theme = createTheme({
   palette: {
@@ -43,7 +51,7 @@ function App() {
     setResponse(null);
 
     try {
-      const res = await fetch(`${API_URL}/api/task`, {
+      const res = await fetch(`${API_BASE}/task`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(request),
