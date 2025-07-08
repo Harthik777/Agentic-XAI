@@ -17,6 +17,7 @@ import {
   useMediaQuery,
   Stack
 } from '@mui/material';
+import { alpha, useTheme } from '@mui/material/styles';
 import {
   DarkMode,
   LightMode,
@@ -30,9 +31,8 @@ import TaskForm from './components/TaskForm';
 import DecisionHistory from './components/DecisionHistory';
 import AnalyticsDashboard from './components/AnalyticsDashboard';
 import { TaskResponse } from './types';
-import { Box, Typography, Paper, useTheme, alpha } from '@mui/material';
 
-// Temporary inline ExplanationView component
+// Temporary inline ExplanationView component (fixed duplicate import issue)
 const ExplanationView: React.FC<{ response: TaskResponse }> = ({ response }) => {
   const theme = useTheme();
   
