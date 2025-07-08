@@ -38,17 +38,22 @@ const itemVariants = {
 const DecisionHistory: React.FC<DecisionHistoryProps> = ({ decisions }) => {
   const theme = useTheme();
 
-  if (!decisions || decisions.length === 0) {
-    return null;
+  if (!Array.isArray(decisions) || decisions.length === 0) {
+    return (
+      <Box sx={{ textAlign: 'center', my: 4 }}>
+        <Typography variant="body1" color="text.secondary">
+          No decision history available yet.
+        </Typography>
+      </Box>
+    );
   }
 
-  const getConfidenceColor = (confidence: number) => {
+  const getConfidenceColor = (confidence: number | undefined) => {
+    if (typeof confidence !== 'number') return theme.palette.error.main;
     if (confidence >= 80) return theme.palette.success.main;
     if (confidence >= 60) return theme.palette.warning.main;
     return theme.palette.error.main;
   };
-
-
 
   return (
     <motion.div
@@ -147,10 +152,10 @@ const DecisionHistory: React.FC<DecisionHistoryProps> = ({ decisions }) => {
                                 WebkitBoxOrient: 'vertical',
                               }}
                             >
-                              {decision.recommendation}
+                              {decision.recommendation || 'No recommendation available'}
                             </Typography>
                             <Typography variant="body2" color="text.secondary">
-                              {decision.reasoning.substring(0, 150)}...
+                              {(decision.reasoning && decision.reasoning.substring(0, 150)) || 'No reasoning available'}...
                             </Typography>
                           </Box>
 
@@ -170,16 +175,14 @@ const DecisionHistory: React.FC<DecisionHistoryProps> = ({ decisions }) => {
                                   color: getConfidenceColor(decision.confidence),
                                 }}
                               >
-                                {decision.confidence}%
+                                {typeof decision.confidence === 'number' ? `${decision.confidence}%` : 'N/A'}
                               </Typography>
                             </Stack>
-
-
                           </Stack>
                         </Stack>
 
                         {/* Tags Row */}
-                        {decision.risk_factors && decision.risk_factors.length > 0 && (
+                        {Array.isArray(decision.risk_factors) && decision.risk_factors.length > 0 && (
                           <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: 1 }}>
                             <Chip
                               size="small"
@@ -188,7 +191,7 @@ const DecisionHistory: React.FC<DecisionHistoryProps> = ({ decisions }) => {
                               variant="outlined"
                               sx={{ fontSize: '0.75rem' }}
                             />
-                            {decision.alternatives && decision.alternatives.length > 0 && (
+                            {Array.isArray(decision.alternatives) && decision.alternatives.length > 0 && (
                               <Chip
                                 size="small"
                                 label={`${decision.alternatives.length} alternatives`}

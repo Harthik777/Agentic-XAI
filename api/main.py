@@ -13,6 +13,7 @@ import random
 from datetime import datetime
 import hashlib
 from dotenv import load_dotenv
+from routes import tasks  # Add this import
 
 # Load environment variables from .env file
 load_dotenv()
@@ -251,6 +252,8 @@ app = FastAPI(
     version="4.0.0",
     description="AI Decision Making API"
 )
+
+app.include_router(tasks.router)  # Add this line to include the router
 
 app.add_middleware(
     CORSMiddleware,
