@@ -34,36 +34,18 @@ class TaskResponse(BaseModel):
     risk_factors: List[str]
     decision_id: str
 
-# Free AI API Configuration - Using multiple free services
-FREE_AI_APIS = {
+# Google Gemini API Configuration
+GOOGLE_API_CONFIG = {
     "gemini": {
         "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent",
         "model": "gemini-1.5-flash",
-        "key": os.getenv("GEMINI_API_KEY", ""),
+        "key": os.getenv("GOOGLE_API_KEY", os.getenv("GEMINI_API_KEY", "")),
         "type": "gemini"
-    },
-    "groq": {
-        "url": "https://api.groq.com/openai/v1/chat/completions",
-        "model": "llama-3.3-70b-versatile",
-        "key": os.getenv("GROQ_API_KEY", ""),
-        "type": "openai"
-    },
-    "huggingface": {
-        "url": "https://api-inference.huggingface.co/models/microsoft/DialoGPT-large",
-        "model": "microsoft/DialoGPT-large",
-        "key": os.getenv("HUGGINGFACE_API_KEY", ""),
-        "type": "huggingface"
-    },
-    "openrouter": {
-        "url": "https://openrouter.ai/api/v1/chat/completions",
-        "model": "deepseek/deepseek-r1:free",
-        "key": os.getenv("OPENROUTER_API_KEY", ""),
-        "type": "openai"
     }
 }
 
-async def get_ai_decision_free(task: str, context: str, priority: str) -> Dict[str, Any]:
-    """Get AI decision using free APIs - trying multiple services"""
+async def get_ai_decision_google(task: str, context: str, priority: str) -> Dict[str, Any]:
+    """Get AI decision using Google Gemini API"""
     
     prompt = f"""
     You are an expert AI decision-making system with explainable AI capabilities. 
@@ -93,114 +75,70 @@ async def get_ai_decision_free(task: str, context: str, priority: str) -> Dict[s
     }}
     """
 
-    # Try free APIs in order of preference
-    for api_name, config in FREE_AI_APIS.items():
-        if not config["key"]:
-            continue
-            
-        try:
-            async with httpx.AsyncClient() as client:
-                # Handle different API types
-                if config.get("type") == "gemini":
-                    # Google Gemini API format
-                    headers = {
-                        "Content-Type": "application/json"
-                    }
-                    url = f"{config['url']}?key={config['key']}"
-                    payload = {
-                        "contents": [{
-                            "parts": [{"text": prompt}]
-                        }],
-                        "generationConfig": {
-                            "temperature": 0.7,
-                            "maxOutputTokens": 2000
-                        }
-                    }
-                elif config.get("type") == "huggingface":
-                    # Hugging Face API format
-                    headers = {
-                        "Authorization": f"Bearer {config['key']}",
-                        "Content-Type": "application/json"
-                    }
-                    url = config["url"]
-                    payload = {
-                        "inputs": prompt,
-                        "parameters": {
-                            "max_new_tokens": 2000,
-                            "temperature": 0.7
-                        }
-                    }
-                else:
-                    # OpenAI-compatible APIs (Groq, OpenRouter)
-                    headers = {
-                        "Authorization": f"Bearer {config['key']}",
-                        "Content-Type": "application/json"
-                    }
-                    url = config["url"]
-                    payload = {
-                        "model": config["model"],
-                        "messages": [
-                            {"role": "system", "content": "You are an expert AI decision-making assistant. Always respond with valid JSON."},
-                            {"role": "user", "content": prompt}
-                        ],
-                        "temperature": 0.7,
-                        "max_tokens": 2000
-                    }
-                
-                # Add specific headers for OpenRouter
-                if api_name == "openrouter":
-                    headers.update({
-                        "HTTP-Referer": "https://agentic-xai.vercel.app",
-                        "X-Title": "Agentic XAI"
-                    })
-                
-                response = await client.post(
-                    url,
-                    headers=headers,
-                    json=payload,
-                    timeout=30.0
-                )
-            
-            if response.status_code == 200:
-                    ai_response = response.json()
-                    
-                    # Extract content based on API type
-                    if config.get("type") == "gemini":
-                        content = ai_response["candidates"][0]["content"]["parts"][0]["text"]
-                    elif config.get("type") == "huggingface":
-                        content = ai_response[0]["generated_text"] if isinstance(ai_response, list) else ai_response.get("generated_text", "")
-                    else:
-                        # OpenAI-compatible APIs
-                        content = ai_response["choices"][0]["message"]["content"]
-                    
-                    # Try to parse JSON from the response
-                    try:
-                        # Clean the response to extract JSON
-                        start_idx = content.find('{')
-                        end_idx = content.rfind('}') + 1
-                        if start_idx != -1 and end_idx != 0:
-                            json_str = content[start_idx:end_idx]
-                            result = json.loads(json_str)
-                            logger.info(f"✅ Successfully got AI response from {api_name}")
-                            return result
-                    except json.JSONDecodeError:
-                        # Parse manually if JSON parsing fails
-                        logger.warning(f"JSON parsing failed for {api_name}, using fallback")
-                        return {
-                            "recommendation": content[:300] + "..." if len(content) > 300 else content,
-                            "reasoning": f"AI analysis completed successfully using {api_name} ({config['model']}).",
-                            "confidence": 85,
-                            "alternatives": [
-                                {"option": "Alternative Approach A", "description": "Consider alternative methodologies", "pros": ["Different perspective", "Innovation potential"], "cons": ["Requires research"]},
-                                {"option": "Alternative Approach B", "description": "Explore parallel solutions", "pros": ["Backup option", "Risk mitigation"], "cons": ["Additional complexity"]}
-                            ],
-                            "risk_factors": ["Implementation complexity", "Resource requirements", "Timeline constraints"]
-                        }
-        except Exception as e:
-            logger.warning(f"Failed to get response from {api_name}: {e}")
-            continue
+    config = GOOGLE_API_CONFIG["gemini"]
     
-    # Ultimate fallback with sophisticated decision logic
+    if not config["key"]:
+        logger.warning("Google API key not configured, using fallback")
+        return create_sophisticated_fallback(task, context, priority)
+        
+    try:
+        async with httpx.AsyncClient() as client:
+            # Google Gemini API format
+            headers = {
+                "Content-Type": "application/json"
+            }
+            url = f"{config['url']}?key={config['key']}"
+            payload = {
+                "contents": [{
+                    "parts": [{"text": prompt}]
+                }],
+                "generationConfig": {
+                    "temperature": 0.7,
+                    "maxOutputTokens": 2000
+                }
+            }
+            
+            response = await client.post(
+                url,
+                headers=headers,
+                json=payload,
+                timeout=30.0
+            )
+        
+        if response.status_code == 200:
+            ai_response = response.json()
+            content = ai_response["candidates"][0]["content"]["parts"][0]["text"]
+            
+            # Try to parse JSON from the response
+            try:
+                # Clean the response to extract JSON
+                start_idx = content.find('{')
+                end_idx = content.rfind('}') + 1
+                if start_idx != -1 and end_idx != 0:
+                    json_str = content[start_idx:end_idx]
+                    result = json.loads(json_str)
+                    logger.info("✅ Successfully got AI response from Google Gemini")
+                    return result
+            except json.JSONDecodeError:
+                # Parse manually if JSON parsing fails
+                logger.warning("JSON parsing failed for Google Gemini, using fallback")
+                return {
+                    "recommendation": content[:300] + "..." if len(content) > 300 else content,
+                    "reasoning": f"AI analysis completed successfully using Google Gemini.",
+                    "confidence": 85,
+                    "alternatives": [
+                        {"option": "Alternative Approach A", "description": "Consider alternative methodologies", "pros": ["Different perspective", "Innovation potential"], "cons": ["Requires research"]},
+                        {"option": "Alternative Approach B", "description": "Explore parallel solutions", "pros": ["Backup option", "Risk mitigation"], "cons": ["Additional complexity"]}
+                    ],
+                    "risk_factors": ["Implementation complexity", "Resource requirements", "Timeline constraints"]
+                }
+        else:
+            logger.warning(f"Google Gemini API returned status {response.status_code}")
+            
+    except Exception as e:
+        logger.warning(f"Failed to get response from Google Gemini: {e}")
+    
+    # Fallback with sophisticated decision logic
     return create_sophisticated_fallback(task, context, priority)
 
 def create_sophisticated_fallback(task: str, context: str, priority: str) -> Dict[str, Any]:
@@ -346,16 +284,16 @@ async def health_check():
 
 @app.get("/debug")
 async def debug_info():
-    token_status = "configured" if os.getenv("HUGGING_FACE_TOKEN") else "missing"
+    google_api_status = "configured" if os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY") else "missing"
     return {
-        "hugging_face_token": token_status,
+        "google_api_key": google_api_status,
         "environment": os.getenv("NODE_ENV", "unknown"),
         "api_status": "operational"
     }
 
 async def get_ai_decision(task: str, context: str, priority: str) -> Dict[str, Any]:
-    """Get AI decision using the best free AI APIs available"""
-    return await get_ai_decision_free(task, context, priority)
+    """Get AI decision using Google Gemini API"""
+    return await get_ai_decision_google(task, context, priority)
 
 @app.post("/task", response_model=TaskResponse)
 async def process_task(request: TaskRequest):

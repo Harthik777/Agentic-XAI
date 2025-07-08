@@ -128,7 +128,7 @@ const itemVariants = {
 };
 
 // Hero section component
-const HeroSection: React.FC<{ darkMode: boolean }> = ({ darkMode }) => (
+const HeroSection: React.FC<{ darkMode: boolean }> = ({ darkMode }: { darkMode: boolean }) => (
   <motion.div
     initial="hidden"
     animate="visible"
@@ -214,7 +214,7 @@ const HeroSection: React.FC<{ darkMode: boolean }> = ({ darkMode }) => (
               mb: 3,
             }}
           >
-            AI-Powered Decision Intelligence Platform
+            Google Gemini AI-Powered Decision Intelligence Platform
           </Typography>
         </motion.div>
 
@@ -228,8 +228,8 @@ const HeroSection: React.FC<{ darkMode: boolean }> = ({ darkMode }) => (
               lineHeight: 1.7,
             }}
           >
-            Make smarter business decisions with explainable AI. Get expert recommendations, 
-            confidence scores, and detailed analysis for any industry or domain - completely free.
+            Make smarter business decisions with Google's Gemini AI. Get expert recommendations, 
+            confidence scores, and detailed analysis for any industry or domain.
           </Typography>
         </motion.div>
 
@@ -238,7 +238,7 @@ const HeroSection: React.FC<{ darkMode: boolean }> = ({ darkMode }) => (
             <Box textAlign="center">
               <Insights sx={{ fontSize: 32, color: 'primary.main', mb: 1 }} />
               <Typography variant="body2" color="text.secondary">
-                Multi-Model AI
+                Google Gemini AI
               </Typography>
             </Box>
             <Box textAlign="center">
@@ -305,7 +305,7 @@ function App() {
 
       const data = await response.json();
       setResponse(data);
-      setHistory(prev => [data, ...prev.slice(0, 9)]); // Keep last 10
+      setHistory((prev: TaskResponse[]) => [data, ...prev.slice(0, 9)]); // Keep last 10
       setSuccessMessage('Decision analysis completed successfully!');
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An unexpected error occurred';
@@ -396,7 +396,7 @@ function App() {
           <Backdrop
             sx={{ 
               color: '#fff', 
-              zIndex: (theme) => theme.zIndex.drawer + 1,
+              zIndex: (theme: any) => theme.zIndex.drawer + 1,
               backdropFilter: 'blur(4px)',
             }}
             open={loading}
@@ -404,10 +404,10 @@ function App() {
             <Box textAlign="center">
               <CircularProgress color="inherit" size={60} thickness={4} />
               <Typography variant="h6" sx={{ mt: 3, color: 'white' }}>
-                AI is analyzing your decision...
+                Google Gemini AI is analyzing your decision...
               </Typography>
               <Typography variant="body2" sx={{ mt: 1, color: 'rgba(255,255,255,0.7)' }}>
-                Consulting multiple AI models for the best recommendation
+                Using advanced reasoning and analysis capabilities
               </Typography>
             </Box>
           </Backdrop>

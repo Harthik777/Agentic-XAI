@@ -1,6 +1,6 @@
-# 🚀 Agentic XAI - Free AI Decision Making System
+# 🚀 Agentic XAI - Google AI Powered Decision Making System
 
-> **Completely Free AI-Powered Decision Support** - Get expert recommendations for any business decision using state-of-the-art AI models at zero cost.
+> **Google AI-Powered Decision Support** - Get expert recommendations for any business decision using Google's Gemini AI model.
 
 ## ✨ Features
 
@@ -25,7 +25,7 @@
 ### Prerequisites
 
 - **Python 3.8+** and **Node.js 18+**
-- No API keys required for basic usage!
+- **Google API key** for Gemini AI (configured)
 
 ### 🎯 One-Click Startup (Windows)
 
@@ -72,53 +72,25 @@ Terminal 2 (Frontend):
 
 5. **Open your browser** to `http://localhost:3000`
 
-## 🔑 Optional: Free API Keys for Enhanced Performance
+## 🔑 Google API Configuration
 
-While the system works without any API keys, you can optionally add free API keys for better performance:
+Your system is configured to use Google's Gemini AI model:
 
-### 1. OpenRouter (DeepSeek R1 - FREE)
-- Visit: https://openrouter.ai/
-- Sign up for free account  
-- Get $1 free credit
-- Model: `deepseek/deepseek-r1:free`
-- Add to environment: `OPENROUTER_API_KEY=your_key_here`
-
-### 2. Groq (Llama 3.3 - FREE)
-- Visit: https://console.groq.com/
-- Free tier: 14,400 requests/day
-- Model: `llama-3.3-70b-versatile`
-- Add to environment: `GROQ_API_KEY=your_key_here`
-
-### 3. Together AI (FREE)
-- Visit: https://api.together.xyz/
-- $1 starting credit
-- Model: `meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo`
-- Add to environment: `TOGETHER_API_KEY=your_key_here`
-
-### 4. Hyperbolic (Up to 80% cheaper)
-- Visit: https://hyperbolic.xyz/
-- Free base plan
-- Add to environment: `HYPERBOLIC_API_KEY=your_key_here`
-
-### 5. HuggingFace (FREE)
-- Visit: https://huggingface.co/settings/tokens
-- Free inference API
-- Add to environment: `HUGGING_FACE_TOKEN=your_token_here`
+- **Model**: Gemini 1.5 Flash
+- **API Key**: AIzaSyA2TmD3yc-yJrCafcVCcLUHVkvKreKrCU8 (configured)
+- **Features**: Advanced reasoning, analysis, and decision-making capabilities
 
 ## ⚙️ Environment Setup
 
-Create a `.env` file in the `api` directory:
+The `.env` file is already configured in the `api` directory with your Google API key:
 
 ```bash
-# Optional - System works without these
-OPENROUTER_API_KEY=sk-or-v1-your-key-here
-GROQ_API_KEY=gsk_your-key-here  
-TOGETHER_API_KEY=your-key-here
-HYPERBOLIC_API_KEY=your-key-here
-HUGGING_FACE_TOKEN=hf_your-token-here
+# Google API Configuration (already set)
+GOOGLE_API_KEY=AIzaSyA2TmD3yc-yJrCafcVCcLUHVkvKreKrCU8
+GEMINI_API_KEY=AIzaSyA2TmD3yc-yJrCafcVCcLUHVkvKreKrCU8
 
-# For production deployment
-NODE_ENV=production
+# Environment Settings
+NODE_ENV=development
 ```
 
 ## 🏗️ Architecture
@@ -127,11 +99,10 @@ NODE_ENV=production
 Frontend (React + TypeScript + Material-UI)
     ↓ HTTP requests
 Backend (FastAPI + Python)
-    ↓ Try multiple APIs in order
-├── OpenRouter (DeepSeek R1) - Primary
-├── Groq (Llama 3.3) - Secondary  
-├── Together AI (Llama 3.1) - Tertiary
-└── Sophisticated Fallback Logic - Always works
+    ↓ Google Gemini API
+Google Gemini 1.5 Flash - Advanced AI decision-making
+    ↓ Fallback
+Sophisticated Local Logic - Ensures reliability
 ```
 
 ## 📊 Demo Examples

@@ -17,6 +17,7 @@ import {
   alpha,
   Tooltip,
   IconButton,
+  SelectChangeEvent,
 } from '@mui/material';
 import {
   ExpandMore,
@@ -162,7 +163,7 @@ const TaskForm: React.FC<TaskFormProps> = ({ onSubmit, loading }) => {
             What decision do you need help with?
           </Typography>
           <Typography variant="body1" color="text.secondary" sx={{ maxWidth: 600, mx: 'auto' }}>
-            Describe your situation and get AI-powered analysis with detailed reasoning, alternatives, and risk assessment
+            Describe your situation and get Google Gemini AI-powered analysis with detailed reasoning, alternatives, and risk assessment
           </Typography>
         </Box>
 
@@ -247,7 +248,7 @@ const TaskForm: React.FC<TaskFormProps> = ({ onSubmit, loading }) => {
               label="Describe your decision or challenge"
               placeholder="e.g., Should we invest in AI automation for our customer service department?"
               value={task}
-              onChange={(e) => setTask(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTask(e.target.value)}
           required
               sx={{
                 '& .MuiOutlinedInput-root': {
@@ -266,7 +267,7 @@ const TaskForm: React.FC<TaskFormProps> = ({ onSubmit, loading }) => {
               label="Additional Context (Optional but Recommended)"
               placeholder="e.g., Company size, budget constraints, timeline, current situation, specific requirements..."
               value={context}
-              onChange={(e) => setContext(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setContext(e.target.value)}
             sx={{ 
                 '& .MuiOutlinedInput-root': {
                   borderRadius: 3,
@@ -282,7 +283,7 @@ const TaskForm: React.FC<TaskFormProps> = ({ onSubmit, loading }) => {
               <Select
                 value={priority}
                 label="Decision Priority"
-                onChange={(e) => setPriority(e.target.value)}
+                onChange={(e: SelectChangeEvent<string>) => setPriority(e.target.value)}
                 sx={{ borderRadius: 3 }}
               >
                 <MenuItem value="low">
@@ -360,7 +361,7 @@ const TaskForm: React.FC<TaskFormProps> = ({ onSubmit, loading }) => {
                   },
                 }}
               >
-                {loading ? 'Analyzing...' : 'Get AI Analysis'}
+                {loading ? 'Analyzing...' : 'Get Gemini AI Analysis'}
           </Button>
 
               <Tooltip title="Clear form">
@@ -399,7 +400,7 @@ const TaskForm: React.FC<TaskFormProps> = ({ onSubmit, loading }) => {
             }}
           >
             <Typography variant="body2" color="text.secondary">
-              💡 Powered by multiple free AI models including OpenRouter, Groq, and Together AI
+              🤖 Powered by Google Gemini 1.5 Flash - Advanced AI reasoning and analysis
             </Typography>
           </Box>
         </motion.div>

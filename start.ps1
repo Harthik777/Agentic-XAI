@@ -87,11 +87,11 @@ Write-Host "🔧 API documentation available at:" -ForegroundColor Cyan
 Write-Host "   http://localhost:8000/docs" -ForegroundColor White
 Write-Host ""
 Write-Host "💡 Features:" -ForegroundColor Yellow
-Write-Host "• 🆓 100% Free AI APIs (DeepSeek R1, Llama 3.3, etc.)" -ForegroundColor White
+Write-Host "• 🤖 Google Gemini AI for intelligent decision-making" -ForegroundColor White
 Write-Host "• 🌐 Works for any industry and business domain" -ForegroundColor White
 Write-Host "• 🔍 Explainable AI with confidence scores" -ForegroundColor White
 Write-Host "• 📊 Analytics and decision history" -ForegroundColor White
-Write-Host "• ⚡ Multiple AI model fallbacks for reliability" -ForegroundColor White
+Write-Host "• ⚡ Reliable Google AI with smart fallbacks" -ForegroundColor White
 Write-Host ""
 Write-Host "🎯 Perfect for job applications, consulting, and business decisions!" -ForegroundColor Green
 Write-Host ""
