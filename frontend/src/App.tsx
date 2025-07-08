@@ -27,10 +27,68 @@ import {
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import TaskForm from './components/TaskForm';
-import ExplanationView from './components/ExplanationView';
 import DecisionHistory from './components/DecisionHistory';
 import AnalyticsDashboard from './components/AnalyticsDashboard';
 import { TaskResponse } from './types';
+import { Box, Typography, Paper, useTheme, alpha } from '@mui/material';
+
+// Temporary inline ExplanationView component
+const ExplanationView: React.FC<{ response: TaskResponse }> = ({ response }) => {
+  const theme = useTheme();
+  
+  return (
+    <Paper
+      elevation={0}
+      sx={{
+        p: 4,
+        borderRadius: 4,
+        background: theme.palette.mode === 'dark'
+          ? 'linear-gradient(135deg, rgba(17, 24, 39, 0.95) 0%, rgba(31, 41, 55, 0.95) 100%)'
+          : 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.95) 100%)',
+        backdropFilter: 'blur(20px)',
+        border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+        boxShadow: theme.palette.mode === 'dark'
+          ? '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
+          : '0 25px 50px -12px rgba(0, 0, 0, 0.1)',
+      }}
+    >
+      <Typography variant="h4" sx={{ fontWeight: 700, mb: 3 }}>
+        AI Analysis Results
+      </Typography>
+      <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
+        Powered by Google Gemini AI • Decision ID: {response.decision_id}
+      </Typography>
+      
+      <Box sx={{ mb: 3 }}>
+        <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: theme.palette.success.main }}>
+          Recommended Action
+        </Typography>
+        <Typography variant="body1" sx={{ lineHeight: 1.6, fontSize: '1.1rem' }}>
+          {response.recommendation}
+        </Typography>
+      </Box>
+      
+      <Box sx={{ mb: 3 }}>
+        <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: theme.palette.primary.main }}>
+          Detailed Reasoning
+        </Typography>
+        <Typography variant="body1" sx={{ lineHeight: 1.7, fontSize: '1.05rem' }}>
+          {response.reasoning}
+        </Typography>
+      </Box>
+      
+      <Box sx={{ mb: 3 }}>
+        <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
+          Confidence: {response.confidence}%
+        </Typography>
+      </Box>
+      
+      <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', mt: 4 }}>
+        🤖 Analysis generated using Google Gemini 1.5 Flash • Consider this as expert guidance, not absolute truth
+      </Typography>
+    </Paper>
+  );
+};
 
 // Modern theme with industry standards
 const createAppTheme = (mode: 'light' | 'dark') => createTheme({
