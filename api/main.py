@@ -3,7 +3,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import PlainTextResponse
 import logging
 import os
+import sys
+from pathlib import Path
 from dotenv import load_dotenv
+
+# Add the api directory to Python path
+api_dir = Path(__file__).parent
+sys.path.insert(0, str(api_dir))
 
 from routes import tasks
 
