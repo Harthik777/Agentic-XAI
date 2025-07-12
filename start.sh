@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Install dependencies
-pip install -r requirements.txt
+pip3 install -r requirements.txt
 
 # Start the application
-uvicorn api.main:app --host 0.0.0.0 --port $PORT 
+python3 railway-start.py 
