@@ -99,7 +99,7 @@ class IntelligentAgent:
 Please provide your response in the following JSON format:
 {{
   "decision": "Your clear and specific recommendation",
-  "confidence": 0.85,
+  "confidence": <your_confidence_score_between_0.0_and_1.0>,
   "reasoning": [
     "First key point of analysis",
     "Second important consideration", 
@@ -112,7 +112,9 @@ Please provide your response in the following JSON format:
   }}
 }}
 
-Make sure the confidence is a decimal between 0.0 and 1.0, and provide practical, actionable advice."""
+IMPORTANT: Replace <your_confidence_score_between_0.0_and_1.0> with an actual decimal between 0.0 and 1.0 based on your analysis. Higher confidence (0.8-1.0) for clear, well-supported decisions. Lower confidence (0.3-0.7) for complex or uncertain situations. Very low confidence (0.1-0.3) for highly uncertain scenarios.
+
+Provide practical, actionable advice with confidence scores that reflect the certainty of your recommendation."""
 
     def _parse_llm_output(self, output: str) -> Decision:
         try:
