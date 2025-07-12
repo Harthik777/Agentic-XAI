@@ -1,0 +1,23 @@
+# Azure App Service Deployment Configuration
+# For GitHub Student Pack users
+
+name: agentic-xai-api
+location: East US
+resourceGroup: agentic-xai-rg
+appServicePlan: agentic-xai-plan
+runtime: python|3.11
+sku: F1  # Free tier perfect for students
+
+# Environment Variables
+env:
+  GOOGLE_API_KEY: "AIzaSyA2TmD3yc-yJrCafcVCcLUHVkvKreKrCU8"
+  PYTHONPATH: "/home/site/wwwroot"
+  
+# Startup Configuration
+startup:
+  command: "python app.py"
+  
+# Build Settings
+build:
+  requirements: "requirements.txt"
+  pythonVersion: "3.11" 

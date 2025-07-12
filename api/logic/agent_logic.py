@@ -19,23 +19,23 @@ class Decision(BaseModel):
 
 class IntelligentAgent:
     """
-    A sophisticated AI agent for decision-making, powered by a free-tier inference API.
+    A sophisticated AI agent for decision-making, powered by Google Gemini API.
     """
     _instance: Optional["IntelligentAgent"] = None
 
     def __init__(self):
-        self.api_url = "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2"
-        self.hf_token = os.getenv("HUGGING_FACE_TOKEN")
+        self.api_url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
+        self.google_api_key = os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")
         
-        if not self.hf_token:
-            logger.warning("HUGGING_FACE_TOKEN is not set. Using fallback responses.")
+        if not self.google_api_key:
+            logger.warning("GOOGLE_API_KEY is not set. Using fallback responses.")
             self.use_fallback = True
         else:
             self.use_fallback = False
-            logger.info("✅ Hugging Face token found.")
+            logger.info("✅ Google API key found.")
         
         self.http_client = httpx.AsyncClient(timeout=45.0)
-        logger.info(f"✅ Agent initialized to use Inference API: {self.api_url}")
+        logger.info(f"✅ Agent initialized to use Google Gemini API")
 
     @classmethod
     def get_instance(cls) -> "IntelligentAgent":
@@ -44,101 +44,119 @@ class IntelligentAgent:
         return cls._instance
 
     async def generate_decision(self, task_description: str, context: Dict[str, Any]) -> Decision:
-        # If no token is available, use fallback immediately
+        # If no API key is available, use fallback immediately
         if self.use_fallback:
-            return self._fallback_decision("Hugging Face token not configured. Using demo response.")
+            return self._fallback_decision("Google API key not configured. Using demo response.")
         
         prompt = self._create_structured_prompt(task_description, context)
-        headers = {"Authorization": f"Bearer {self.hf_token}"}
         
         payload = {
-            "inputs": prompt,
-            "parameters": {
-                "max_new_tokens": 512,
+            "contents": [{
+                "parts": [{"text": prompt}]
+            }],
+            "generationConfig": {
                 "temperature": 0.7,
-                "return_full_text": False,
-                "do_sample": True,
+                "maxOutputTokens": 1000
             }
         }
 
         try:
-            response = await self.http_client.post(self.api_url, json=payload, headers=headers)
+            url = f"{self.api_url}?key={self.google_api_key}"
+            response = await self.http_client.post(url, json=payload)
             response.raise_for_status()
             
             api_response = response.json()
-            if api_response and api_response[0]['generated_text']:
-                return self._parse_llm_output(api_response[0]['generated_text'])
+            if api_response and "candidates" in api_response and api_response["candidates"]:
+                content = api_response["candidates"][0]["content"]["parts"][0]["text"]
+                return self._parse_llm_output(content)
 
-            return self._fallback_decision("Inference API returned an empty or invalid response.")
+            return self._fallback_decision("Google Gemini API returned an empty or invalid response.")
             
         except httpx.HTTPStatusError as e:
             error_body = e.response.text
-            logger.error(f"💥 Inference API request failed with status {e.response.status_code}: {error_body}")
+            logger.error(f"💥 Google Gemini API request failed with status {e.response.status_code}: {error_body}")
             detail = f"API Error (Status {e.response.status_code})."
-            if "currently loading" in error_body.lower():
-                detail = "The model is currently loading, please try again in a few moments."
+            if "quota" in error_body.lower():
+                detail = "API quota exceeded. Please check your Google Cloud billing and quotas."
+            elif "invalid" in error_body.lower():
+                detail = "Invalid API key. Please check your GOOGLE_API_KEY environment variable."
             return self._fallback_decision(detail)
         except Exception as e:
-            logger.error(f"💥 LLM generation failed during task execution: {e}")
+            logger.error(f"💥 Google Gemini generation failed during task execution: {e}")
             return self._fallback_decision(f"An unexpected error occurred during the API call.")
 
     def _create_structured_prompt(self, task_description: str, context: Dict[str, Any]) -> str:
         context_str = "\n".join([f"- {key}: {value}" for key, value in context.items()])
-        json_structure = """
-{
-  "decision": "YOUR_CLEAR_AND_CONCISE_DECISION",
-  "confidence": YOUR_CONFIDENCE_SCORE_AS_FLOAT_BETWEEN_0_AND_1,
+        
+        return f"""You are an expert decision-making AI. Analyze the following task and provide a structured decision.
+
+**TASK:**
+{task_description}
+
+**CONTEXT:**
+{context_str if context else 'No context provided.'}
+
+Please provide your response in the following JSON format:
+{{
+  "decision": "Your clear and specific recommendation",
+  "confidence": 0.85,
   "reasoning": [
-    "STEP_1_OF_YOUR_REASONING",
-    "STEP_2_OF_YOUR_REASONING",
-    "..."
+    "First key point of analysis",
+    "Second important consideration", 
+    "Third supporting argument"
   ],
-  "key_factors": {
-    "FACTOR_1_NAME": "EXPLANATION_OF_FACTOR_1S_IMPACT",
-    "FACTOR_2_NAME": "EXPLANATION_OF_FACTOR_2S_IMPACT",
-    "..."
-  }
-}
-"""
-        return (
-            f"[INST] You are an expert decision-making AI. Your goal is to provide a clear, well-reasoned decision based on the provided task and context. "
-            f"Analyze the following information and then generate a structured response in a JSON format inside a markdown code block. Do not add any extra commentary before or after the JSON structure.\n\n"
-            f"**TASK:**\n{task_description}\n\n"
-            f"**CONTEXT:**\n{context_str if context else 'No context provided.'}\n\n"
-            f"**REQUIRED JSON STRUCTURE:**\n```json\n{json_structure}\n```\n[/INST]"
-        )
+  "key_factors": {{
+    "Factor 1": "Explanation of how this impacts the decision",
+    "Factor 2": "Analysis of this consideration",
+    "Factor 3": "Assessment of this element"
+  }}
+}}
+
+Make sure the confidence is a decimal between 0.0 and 1.0, and provide practical, actionable advice."""
 
     def _parse_llm_output(self, output: str) -> Decision:
         try:
+            # Try to find JSON block first
             json_match = re.search(r'```json\n(.*?)\n```', output, re.S)
             if json_match:
                 json_str = json_match.group(1).strip()
-                data = json.loads(json_str)
-                return Decision(**data)
+            else:
+                # Try to find JSON without code block
+                start_idx = output.find('{')
+                end_idx = output.rfind('}') + 1
+                if start_idx != -1 and end_idx != 0:
+                    json_str = output[start_idx:end_idx]
+                else:
+                    raise ValueError("No JSON found in response")
             
-            logger.warning("Could not find a valid JSON block in the LLM output.")
-            return self._fallback_decision("Failed to parse structured JSON from LLM output.")
-        
-        except (json.JSONDecodeError, TypeError, KeyError) as e:
-            logger.error(f"💥 Failed to parse or validate LLM output JSON: {e}\nOutput was: {output}")
-            return self._fallback_decision(f"Invalid JSON structure in LLM response: {e}")
+            data = json.loads(json_str)
+            
+            # Validate required fields
+            if not all(key in data for key in ["decision", "confidence", "reasoning", "key_factors"]):
+                raise ValueError("Missing required fields in JSON response")
+                
+            return Decision(**data)
+            
+        except (json.JSONDecodeError, ValueError, TypeError, KeyError) as e:
+            logger.error(f"💥 Failed to parse Google Gemini output JSON: {e}\nOutput was: {output}")
+            return self._fallback_decision(f"Invalid JSON structure in Google Gemini response: {e}")
 
     def _fallback_decision(self, reason: str) -> Decision:
         logger.warning(f"Executing fallback decision logic due to: {reason}")
         
-        if "token not configured" in reason.lower() or "demo" in reason.lower():
+        if "not configured" in reason.lower() or "demo" in reason.lower():
             return Decision(
-                decision="Demo response: Consider gathering more information before making this decision.",
+                decision="Demo response: Consider gathering more information and consulting with stakeholders before making this decision.",
                 confidence=0.8,
                 reasoning=[
-                    "This is a demonstration response since the Hugging Face API token is not configured.",
-                    "In a real scenario, I would analyze the provided context carefully.",
-                    "I would weigh the pros and cons of each option.",
-                    "I would provide data-driven recommendations based on the task requirements."
+                    "This is a demonstration response since the Google API key is not configured.",
+                    "In a real scenario, I would analyze the provided context using Google Gemini AI.",
+                    "I would evaluate multiple perspectives and potential outcomes.",
+                    "I would provide data-driven recommendations based on the specific requirements."
                 ],
                 key_factors={
                     "demo_mode": "This response is generated without AI model access",
-                    "configuration": "Set HUGGING_FACE_TOKEN environment variable for full functionality",
+                    "configuration": "Set GOOGLE_API_KEY environment variable for full functionality", 
                     "recommendation": "The system is working correctly, but needs API configuration"
                 }
             )
@@ -146,7 +164,7 @@ class IntelligentAgent:
             return Decision(
                 decision="A decision could not be reached due to a system error.",
                 confidence=0.0,
-                reasoning=["The primary AI model failed to provide a valid response.", f"Error: {reason}"],
+                reasoning=["Google Gemini AI failed to provide a valid response.", f"Error: {reason}"],
                 key_factors={"System Status": "An internal error occurred.", "Error Details": reason}
             )
 
@@ -171,7 +189,7 @@ if __name__ == '__main__':
             decision = await agent.generate_decision(task, context)
             
             print("\n🎉 Decision received:")
-            print(decision.json(indent=2))
+            print(decision.model_dump_json(indent=2))
             
         except Exception as e:
             print(f"🔥 An error occurred during the test run: {e}")
